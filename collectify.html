@@ -1183,6 +1183,11 @@
         line-height: 1.1;
         letter-spacing: 0.2px;
         animation: scaleIn 0.3s var(--ios-easing);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-width: 0;
       }
 
       .status-active {
@@ -4964,6 +4969,12 @@
               const daysSince = lastAt ? Math.floor((today - new Date(lastAt)) / (1000 * 60 * 60 * 24)) : 999;
               if (daysSince >= 1) {
                 showCollateralNotification(client, coMakerInfo, collateralInfo, null);
+                // Play individual sound for this client
+                setTimeout(() => {
+                  if (notificationSystem) {
+                    notificationSystem.playNotificationSound('alert');
+                  }
+                }, 100);
                 localStorage.setItem(lastKey, todayStr);
               }
               client.consecutiveMissedDays = 1;
@@ -4998,6 +5009,12 @@
             const daysSince = last ? Math.floor((today - new Date(last)) / (1000 * 60 * 60 * 24)) : 999;
             if (daysSince >= 1) {
               showCollateralNotification(client, coMakerInfo, collateralInfo, missedSinceStart);
+              // Play individual sound for this client
+              setTimeout(() => {
+                if (notificationSystem) {
+                  notificationSystem.playNotificationSound('alert');
+                }
+              }, 200);
               localStorage.setItem(key, todayStr);
             }
           }
@@ -5083,16 +5100,11 @@
         notification.id = `collateral-notification-${client.id}`;
         document.body.appendChild(notification);
 
-        // Also show a regular notification and play sound
+        // Show a regular notification (sound is played individually in checkMissedPayments)
         const summaryMsg = missedSinceStartCount && missedSinceStartCount > 0
           ? `Client ${client.name} has missed ${missedSinceStartCount} working day(s) since start.`
           : `Client ${client.name} missed a payment on the last working day.`;
         showNotification(summaryMsg, 'error');
-
-        // Play notification sound
-        if (notificationSystem) {
-          notificationSystem.playNotificationSound('alert');
-        }
       }
 
       // Contact co-maker helper
@@ -6908,7 +6920,7 @@
               <div style="display:flex; justify-content: space-between; align-items:center;">
                 <div>
                   <h4>${it.clientName}</h4>
-                  <p>Paid: ₱${it.paid.toFixed(2)} • Expected: ₱${it.expected.toFixed(2)} <span class="status-badge status-overpay" style="margin-left:6px">Over</span></p>
+                  <p>Paid: ��${it.paid.toFixed(2)} • Expected: ₱${it.expected.toFixed(2)} <span class="status-badge status-overpay" style="margin-left:6px">Over</span></p>
                   <p>Over by ₱${it.overBy.toFixed(2)}</p>
                 </div>
               </div>
