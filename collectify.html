@@ -7481,6 +7481,9 @@
           typePayments = typePayments.filter(p => p.date <= tdy);
         }
 
+        // Update filter buttons UI state
+        updateFilterButtonsUI(type);
+
         if (typePayments.length === 0) {
           paymentList.innerHTML =
             '<div class="no-data">No payments recorded yet</div>';
@@ -8227,7 +8230,7 @@
             let extraLine = "";
             if (entry.advForFuture && entry.advForFuture > 0) {
               const lines = entry.advDetails
-                .map((d) => `Advance for ${parseLocalDate(d.forDate).toLocaleDateString()}: ₱${(d.amount).toFixed(2)} (included in Actual Collection — remember to separate)`)
+                .map((d) => `Advance for ${parseLocalDate(d.forDate).toLocaleDateString()}: ₱${(d.amount).toFixed(2)} (included in Actual Collection ��� remember to separate)`)
                 .join("<br>");
               extraLine += `<p>${lines}</p>`;
             }
