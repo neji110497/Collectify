@@ -7472,10 +7472,13 @@
         let typePayments = (payments[type] || []).filter(
           (p) => (p.paymentType || type) === type,
         );
-        // For collection tabs, show only today's records
-        if (type === 'notebook' || type === 'office' || type === 'gcash') {
-          const tdy = todayLocalDateStr();
+        // Apply history filter (Today vs All up to today)
+        const mode = (historyFilters[type] || 'today');
+        const tdy = todayLocalDateStr();
+        if (mode === 'today') {
           typePayments = typePayments.filter(p => p.date === tdy);
+        } else {
+          typePayments = typePayments.filter(p => p.date <= tdy);
         }
 
         if (typePayments.length === 0) {
