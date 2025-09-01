@@ -4048,7 +4048,7 @@
                 style="display: none"
               ></div>
               <small style="color: var(--ios-secondary-label); font-size: 12px; margin-top: 4px; display: block;">
-                ⚠️ Start date must be on a configured release day (see Settings → Loan Release Days)
+                ⚠️ Start date is the day after a configured release day (default: Tue & Fri). If that day is a holiday, it moves to the next day.
               </small>
             </div>
           </div>
@@ -4475,7 +4475,7 @@
         interestRate: 20,
         loanTerm: 48,
         holidays: [],
-        releaseDays: [false, false, false, false, false, false, false],
+        releaseDays: [false, false, true, false, false, true, false],
       };
       let currentActiveTab = "dashboard";
       let calendarViewState = { clientId: null, year: 0, month: 0 };
@@ -4626,7 +4626,8 @@
         // Set today's date as default for all date inputs and enforce rules
         const today = todayLocalDateStr();
         const setVal = (id) => { const el = document.getElementById(id); if (el) el.value = today; };
-        ["paymentDate","officePaymentDate","gcashPaymentDate","advPaymentDate","abonoPaymentDate","absentDate","trackerDate","startDate","fullPaymentDate"].forEach(setVal);
+        ["paymentDate","officePaymentDate","gcashPaymentDate","advPaymentDate","abonoPaymentDate","absentDate","trackerDate","fullPaymentDate"].forEach(setVal);
+        const sde = document.getElementById("startDate"); if (sde) { sde.value = getNextValidStartDate(today); }
         const sd = document.getElementById("summaryDate"); if (sd) sd.value = today;
         // Restrict to today for payment tabs (Notebook, Office, GCash, Full Pay)
         const restrictToToday = (id) => {
@@ -4877,6 +4878,9 @@
       // Modal functions
       function openAddClientModal() {
         document.getElementById("addClientModal").classList.add("active");
+        const today = todayLocalDateStr();
+        const sde = document.getElementById("startDate");
+        if (sde) { sde.value = getNextValidStartDate(today); }
         // Load default settings
         calculateLoanDetails();
 
@@ -4908,8 +4912,9 @@
           const cpList = document.getElementById("collateralPreviewList");
           if (cpList) cpList.innerHTML = "";
           document.getElementById("collateralPreview").style.display = "none";
-          const today = new Date().toISOString().split("T")[0];
-          document.getElementById("startDate").value = today;
+          const today = todayLocalDateStr();
+          const sde = document.getElementById("startDate");
+          if (sde) { sde.value = getNextValidStartDate(today); }
           calculateLoanDetails();
           clearClientNameError("clientName", "clientNameError");
           // Clear start date validation error
@@ -4977,6 +4982,45 @@
         }
       }
 
+      // Determine if a start date is valid: it must be the day AFTER a configured release day,
+      // and not a non-collection day (Sunday/holiday)
+      function isValidStartDay(dateStr) {
+        if (!dateStr) return false;
+        try {
+          const start = parseLocalDate(dateStr);
+          const prev = new Date(start.getFullYear(), start.getMonth(), start.getDate() - 1);
+          const prevStr = formatDateLocal(prev);
+          const prevDow = prev.getDay();
+          const rel = Array.isArray(defaultSettings.releaseDays) && defaultSettings.releaseDays.length === 7
+            ? defaultSettings.releaseDays
+            : [false, false, true, false, false, true, false]; // fallback Tue & Fri
+          if (!rel[prevDow]) return false;
+          if (isNonCollectionDay(dateStr)) return false;
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // Find the next start date from a given date such that previous day is a release day
+      // and the start day itself is not a non-collection day
+      function getNextValidStartDate(fromDateStr) {
+        if (!fromDateStr) return todayLocalDateStr();
+        try {
+          let cursor = parseLocalDate(fromDateStr);
+          // search up to 60 days ahead to be safe
+          for (let i = 0; i < 60; i++) {
+            const curStr = formatDateLocal(cursor);
+            if (isValidStartDay(curStr)) return curStr;
+            // if not valid, advance: if today is a configured release day, try tomorrow first; otherwise move to next day
+            cursor.setDate(cursor.getDate() + 1);
+          }
+          return formatDateLocal(cursor);
+        } catch (e) {
+          return fromDateStr;
+        }
+      }
+
       // Validate start date input and show error/auto-correct
       function validateStartDateInput(inputId, errorContainerId) {
         const input = document.getElementById(inputId);
@@ -4993,22 +5037,21 @@
           errorContainer.style.display = 'none';
         }
 
-        if (!isValidReleaseDay(dateValue)) {
-          const dayName = getDayName(dateValue);
-          const nextValid = getNextValidReleaseDay(dateValue);
-          const nextDayName = getDayName(nextValid);
+        if (!isValidStartDay(dateValue)) {
+          const nextValid = getNextValidStartDate(dateValue);
+          const info = `${getDayName(formatDateLocal(addDaysLocal(nextValid, -1)))} release → ${getDayName(nextValid)}`;
 
-          // Show error
+          // Show feedback
           input.classList.add('input-error');
           if (errorContainer) {
-            errorContainer.textContent = `${dayName} is not configured as a loan release day. Suggested: ${nextDayName} (${parseLocalDate(nextValid).toLocaleDateString()})`;
+            errorContainer.textContent = `Start date must be the day after a configured release day. Suggested: ${parseLocalDate(nextValid).toLocaleDateString()} (${info})`;
             errorContainer.style.display = 'block';
           }
 
-          // Auto-adjust to next valid day
+          // Auto-adjust to next valid start date
           input.value = nextValid;
 
-          showNotification(`Start date adjusted to next valid release day: ${nextDayName}`, 'success');
+          showNotification(`Start date adjusted to ${parseLocalDate(nextValid).toLocaleDateString()}`, 'success');
 
           // Clear error styling after a moment
           setTimeout(() => {
@@ -5428,7 +5471,7 @@
                 // Play individual sound for this client
                 setTimeout(() => {
                   if (notificationSystem) {
-                    notificationSystem.playNotificationSound('alert');
+                    notificationSystem.playNotificationSound();
                   }
                 }, 100);
                 localStorage.setItem(lastKey, todayStr);
@@ -5468,7 +5511,7 @@
               // Play individual sound for this client
               setTimeout(() => {
                 if (notificationSystem) {
-                  notificationSystem.playNotificationSound('alert');
+                  notificationSystem.playNotificationSound();
                 }
               }, 200);
               localStorage.setItem(key, todayStr);
@@ -5790,16 +5833,18 @@
           return;
         }
 
-        // Validate start date is on a valid release day
-        if (!isValidReleaseDay(startDate)) {
-          const dayName = getDayName(startDate);
-          showNotification(`${dayName} is not configured as a loan release day. Please check Settings → Loan Release Days.`, "error");
-          return;
+        // Ensure start date is the day after a configured release day and not a non-collection day
+        let startDateAdjusted = startDate;
+        if (!isValidStartDay(startDateAdjusted)) {
+          const corrected = getNextValidStartDate(startDateAdjusted);
+          startDateAdjusted = corrected;
+          const sdEl = document.getElementById("startDate"); if (sdEl) sdEl.value = corrected;
+          showNotification(`Start date adjusted to ${parseLocalDate(corrected).toLocaleDateString()}`, "success");
         }
 
         const totalAmount = loanAmount * (1 + interestRate / 100);
         const dailyAmount = totalAmount / loanTerm;
-        const dueDate = new Date(startDate);
+        const dueDate = new Date(startDateAdjusted);
         dueDate.setDate(dueDate.getDate() + loanTerm);
 
         const client = {
@@ -5811,7 +5856,7 @@
           totalAmount: totalAmount,
           dailyAmount: dailyAmount,
           term: loanTerm,
-          startDate: startDate,
+          startDate: startDateAdjusted,
           dueDate: dueDate.toISOString().split("T")[0],
           remainingBalance: totalAmount,
           status: "active",
@@ -8609,7 +8654,7 @@
 
         if (!Array.isArray(defaultSettings.holidays)) defaultSettings.holidays = [];
         if (!Array.isArray(defaultSettings.releaseDays) || defaultSettings.releaseDays.length !== 7) {
-          defaultSettings.releaseDays = [false, false, false, false, false, false, false];
+          defaultSettings.releaseDays = [false, false, true, false, false, true, false];
         }
 
         document.getElementById("settingsTotalClients").textContent =
