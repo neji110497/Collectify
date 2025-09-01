@@ -7437,6 +7437,30 @@
         renderSimple('summaryAbsentList', abs, 'status-absent', 'No absences');
       }
 
+      // History filters (Today vs All up to today)
+      let historyFilters = { notebook: 'today', office: 'today', gcash: 'today', adv: 'today', abono: 'today', absent: 'today' };
+      function loadHistoryFilters(){
+        try { const saved = localStorage.getItem('collectify_historyFilters'); if (saved) { const obj = JSON.parse(saved); historyFilters = { ...historyFilters, ...obj }; } } catch(e) {}
+      }
+      function saveHistoryFilters(){ try { localStorage.setItem('collectify_historyFilters', JSON.stringify(historyFilters)); } catch(e) {}
+      }
+      function updateFilterButtonsUI(type){
+        try {
+          const mode = historyFilters[type] || 'today';
+          const tBtn = document.getElementById(`${type}FilterToday`);
+          const aBtn = document.getElementById(`${type}FilterAll`);
+          if (tBtn && aBtn){
+            const set = (btn, active)=>{ btn.className = `btn ${active ? 'btn-primary' : 'btn-secondary'}`; btn.style.margin='0'; btn.style.padding='6px 10px'; btn.style.fontSize='12px'; };
+            set(tBtn, mode==='today'); set(aBtn, mode==='all');
+          }
+        } catch(e) {}
+      }
+      function setHistoryFilter(type, mode){
+        if (!['today','all'].includes(mode)) return;
+        historyFilters[type] = mode; saveHistoryFilters(); updateFilterButtonsUI(type);
+        if (type === 'absent') { updateAbsenceHistory(); } else { updatePaymentHistory(type); }
+      }
+
       // Update payment history
       function updatePaymentHistory(type) {
         const listId = `${type}PaymentList`;
