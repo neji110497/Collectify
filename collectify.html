@@ -5428,7 +5428,7 @@
                 // Play individual sound for this client
                 setTimeout(() => {
                   if (notificationSystem) {
-                    notificationSystem.playNotificationSound('alert');
+                    notificationSystem.playNotificationSound();
                   }
                 }, 100);
                 localStorage.setItem(lastKey, todayStr);
@@ -5468,7 +5468,7 @@
               // Play individual sound for this client
               setTimeout(() => {
                 if (notificationSystem) {
-                  notificationSystem.playNotificationSound('alert');
+                  notificationSystem.playNotificationSound();
                 }
               }, 200);
               localStorage.setItem(key, todayStr);
