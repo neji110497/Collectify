@@ -1356,6 +1356,75 @@
         transform: rotate(90deg);
       }
 
+      /* Modal Tab Styles */
+      .modal-tabs {
+        display: flex;
+        background: var(--ios-gray6);
+        border-radius: var(--ios-border-radius);
+        padding: 4px;
+        margin-bottom: 20px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .modal-tab {
+        flex: 1;
+        padding: 10px 16px;
+        border-radius: var(--ios-border-radius);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--ios-secondary-label);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s var(--ios-easing);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-align: center;
+      }
+
+      .modal-tab.active {
+        background: var(--ios-system-background);
+        color: var(--ios-blue);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .modal-tab:hover:not(.active) {
+        background: rgba(0, 122, 255, 0.05);
+        color: var(--ios-blue);
+      }
+
+      .modal-tab .icon-inline {
+        width: 16px;
+        height: 16px;
+        margin-right: 0;
+      }
+
+      .modal-tab-content {
+        position: relative;
+        min-height: 300px;
+      }
+
+      .modal-tab-panel {
+        display: none;
+        animation: fadeIn 0.3s var(--ios-easing);
+      }
+
+      .modal-tab-panel.active {
+        display: block;
+      }
+
+      /* Dark mode support for modal tabs */
+      body.dark .modal-tabs {
+        background: var(--ios-tertiary-system-background);
+      }
+
+      body.dark .modal-tab.active {
+        background: var(--ios-secondary-system-background);
+        color: var(--ios-blue);
+      }
+
       /* Enhanced Dark Mode Support */
       .dark body,
       body.dark {
@@ -4125,7 +4194,34 @@
           </button>
         </div>
         <div class="modal-body">
-          <div id="viewClientContent"></div>
+          <!-- Modal Tabs -->
+          <div class="modal-tabs">
+            <div class="modal-tab active" data-modal-tab="client" onclick="switchModalTab('client')">
+              <svg class="icon-inline" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" fill="none"></path>
+                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="none"></circle>
+              </svg>
+              Client
+            </div>
+            <div class="modal-tab" data-modal-tab="comaker" onclick="switchModalTab('comaker')">
+              <svg class="icon-inline" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" fill="none"></path>
+                <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="none"></circle>
+                <path d="M20 8v6M23 11l-3 3-3-3" stroke="currentColor" stroke-width="2" fill="none"></path>
+              </svg>
+              Co-maker
+            </div>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="modal-tab-content">
+            <div id="clientTabContent" class="modal-tab-panel active">
+              <div id="viewClientContent"></div>
+            </div>
+            <div id="comakerTabContent" class="modal-tab-panel">
+              <div id="viewCoMakerContent"></div>
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-primary" onclick="contactClient(calendarViewState.clientId || 0)">Contact Client</button>
