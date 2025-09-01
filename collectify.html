@@ -4959,8 +4959,10 @@
             ${client.collateral && (client.collateral.photosBase64?.[0] || client.collateral.photoBase64) ?
               `<img src="${(client.collateral.photosBase64 && client.collateral.photosBase64[0]) || client.collateral.photoBase64}" style="max-width: 200px; max-height: 150px; border-radius: var(--ios-border-radius); margin-top: 8px;" alt="Collateral Photo">` : ''
             }
-            <div style="margin-top: 15px;">
-              <button class="btn btn-primary" onclick="contactCoMaker('${client.id}')">Contact Co-maker</button>
+            <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+              <button class="btn btn-success" onclick="textClient(${client.id})">Text Client</button>
+              <button class="btn btn-primary" onclick="contactClient(${client.id})">Call Client</button>
+              <button class="btn btn-warning" onclick="contactCoMaker(${client.id})">Contact Co-maker</button>
               <button class="btn btn-secondary" onclick="dismissCollateralNotification('${client.id}')">Dismiss</button>
             </div>
           </div>
