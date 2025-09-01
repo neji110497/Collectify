@@ -2971,6 +2971,10 @@
                 "
               >
                 <h3>Notebook Payment History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="notebookFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('notebook','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="notebookFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('notebook','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button
                   class="btn btn-danger"
                   onclick="confirmClearPaymentHistory('notebook')"
@@ -3398,6 +3402,10 @@
                 "
               >
                 <h3>Office Payment History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="officeFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('office','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="officeFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('office','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button
                   class="btn btn-danger"
                   onclick="confirmClearPaymentHistory('office')"
@@ -3471,6 +3479,10 @@
                 "
               >
                 <h3>GCash Payment History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="gcashFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('gcash','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="gcashFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('gcash','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button
                   class="btn btn-danger"
                   onclick="confirmClearPaymentHistory('gcash')"
@@ -3544,6 +3556,10 @@
                 "
               >
                 <h3>Adv Payment History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="advFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('adv','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="advFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('adv','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button
                   class="btn btn-danger"
                   onclick="confirmClearPaymentHistory('adv')"
@@ -3609,6 +3625,10 @@
             <div id="abonoPaymentHistory">
               <div style="display:flex; justify-content: space-between; align-items:center; gap:8px; flex-wrap:wrap;">
                 <h3>Abono History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="abonoFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('abono','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="abonoFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('abono','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button class="btn btn-danger" onclick="confirmClearPaymentHistory('abono')">Clear All</button>
               </div>
               <div id="abonoPaymentList"></div>
@@ -3690,6 +3710,10 @@
                 "
               >
                 <h3>Absence History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="absentFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('absent','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="absentFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('absent','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button
                   class="btn btn-danger"
                   onclick="confirmClearAbsenceHistory()"
@@ -4612,6 +4636,7 @@
         // Load data (will automatically fall back to localStorage if db is null)
         try {
           await loadData();
+          loadHistoryFilters();
         } catch (e) {
           console.error("Data load failed; continuing with empty state.", e);
         }
@@ -7437,6 +7462,30 @@
         renderSimple('summaryAbsentList', abs, 'status-absent', 'No absences');
       }
 
+      // History filters (Today vs All up to today)
+      let historyFilters = { notebook: 'today', office: 'today', gcash: 'today', adv: 'today', abono: 'today', absent: 'today' };
+      function loadHistoryFilters(){
+        try { const saved = localStorage.getItem('collectify_historyFilters'); if (saved) { const obj = JSON.parse(saved); historyFilters = { ...historyFilters, ...obj }; } } catch(e) {}
+      }
+      function saveHistoryFilters(){ try { localStorage.setItem('collectify_historyFilters', JSON.stringify(historyFilters)); } catch(e) {}
+      }
+      function updateFilterButtonsUI(type){
+        try {
+          const mode = historyFilters[type] || 'today';
+          const tBtn = document.getElementById(`${type}FilterToday`);
+          const aBtn = document.getElementById(`${type}FilterAll`);
+          if (tBtn && aBtn){
+            const set = (btn, active)=>{ btn.className = `btn ${active ? 'btn-primary' : 'btn-secondary'}`; btn.style.margin='0'; btn.style.padding='6px 10px'; btn.style.fontSize='12px'; };
+            set(tBtn, mode==='today'); set(aBtn, mode==='all');
+          }
+        } catch(e) {}
+      }
+      function setHistoryFilter(type, mode){
+        if (!['today','all'].includes(mode)) return;
+        historyFilters[type] = mode; saveHistoryFilters(); updateFilterButtonsUI(type);
+        if (type === 'absent') { updateAbsenceHistory(); } else { updatePaymentHistory(type); }
+      }
+
       // Update payment history
       function updatePaymentHistory(type) {
         const listId = `${type}PaymentList`;
@@ -7448,11 +7497,17 @@
         let typePayments = (payments[type] || []).filter(
           (p) => (p.paymentType || type) === type,
         );
-        // For collection tabs, show only today's records
-        if (type === 'notebook' || type === 'office' || type === 'gcash') {
-          const tdy = todayLocalDateStr();
+        // Apply history filter (Today vs All up to today)
+        const mode = (historyFilters[type] || 'today');
+        const tdy = todayLocalDateStr();
+        if (mode === 'today') {
           typePayments = typePayments.filter(p => p.date === tdy);
+        } else {
+          typePayments = typePayments.filter(p => p.date <= tdy);
         }
+
+        // Update filter buttons UI state
+        updateFilterButtonsUI(type);
 
         if (typePayments.length === 0) {
           paymentList.innerHTML =
@@ -7469,7 +7524,7 @@
                 <div>
                   <h4>${payment.clientName}</h4>
                   <p>₱${payment.amount.toFixed(2)} • ${parseLocalDate(payment.date).toLocaleDateString()}</p>
-                  ${payment.paymentType === 'abono' && payment.lenderName ? `<p>Lender: ${payment.lenderName}${(payment.repaid||0)>0 ? ` • Repaid: ₱${(payment.repaid||0).toFixed(2)} • Outstanding: ₱${Math.max(0, payment.amount - (payment.repaid||0)).toFixed(2)}` : ''}</p>` : ''}
+                  ${payment.paymentType === 'abono' && payment.lenderName ? `<p>Lender: ${payment.lenderName}${(payment.repaid||0)>0 ? ` ��� Repaid: ₱${(payment.repaid||0).toFixed(2)} • Outstanding: ₱${Math.max(0, payment.amount - (payment.repaid||0)).toFixed(2)}` : ''}</p>` : ''}
                   ${payment.paymentType === 'adv' && payment.initialAmount && payment.initialAmount > payment.amount ? `<p>Borrowed via Abono: ₱${(payment.initialAmount - payment.amount).toFixed(2)}${formatAdvBorrowers(payment)} • Remaining: ₱${payment.amount.toFixed(2)} of ₱${payment.initialAmount.toFixed(2)}</p>` : ''}
                   <p><span class="status-badge status-active">${payment.type}</span></p>
                 </div>
@@ -7871,13 +7926,19 @@
 
         if (!absentList) return;
 
-        if (absences.length === 0) {
+        // Apply history filter for absences
+        const mode = (historyFilters.absent || 'today');
+        const tdy = todayLocalDateStr();
+        const filtered = mode === 'today' ? (absences||[]).filter(a => a.date === tdy) : (absences||[]).filter(a => a.date <= tdy);
+        updateFilterButtonsUI('absent');
+
+        if (filtered.length === 0) {
           absentList.innerHTML =
             '<div class="no-data">No absences recorded yet</div>';
           return;
         }
 
-        absentList.innerHTML = absences
+        absentList.innerHTML = filtered
           .sort((a, b) => new Date(b.date) - new Date(a.date))
           .map(
             (absence) => `
@@ -10418,9 +10479,9 @@
           const term = defaultSettings.loanTerm;
           let start = formatDateLocal(addDaysLocal(today, -(i * 4)));
 
-          // Apply start date validation to ensure demo clients have valid release days
-          if (!isValidReleaseDay(start)) {
-            start = getNextValidReleaseDay(start);
+          // Apply start date validation to ensure demo clients start the day AFTER a release day (and not a holiday/Sunday)
+          if (!isValidStartDay(start)) {
+            start = getNextValidStartDate(start);
           }
 
           let due = addDaysLocal(start, term);
@@ -10433,18 +10494,18 @@
           // Force client #1 to be overdue with remaining balance
           if (i === 1) {
             start = formatDateLocal(addDaysLocal(today, -30));
-            // Apply validation to overdue client as well
-            if (!isValidReleaseDay(start)) {
-              start = getNextValidReleaseDay(start);
+            // Apply validation to overdue client as well (day after release day)
+            if (!isValidStartDay(start)) {
+              start = getNextValidStartDate(start);
             }
             dueDate = formatDateLocal(addDaysLocal(today, -5));
           }
           // Make one "due soon"
           if (i === 6) {
             start = formatDateLocal(addDaysLocal(today, -term + 2));
-            // Apply validation to due soon client as well
-            if (!isValidReleaseDay(start)) {
-              start = getNextValidReleaseDay(start);
+            // Apply validation to due soon client as well (day after release day)
+            if (!isValidStartDay(start)) {
+              start = getNextValidStartDate(start);
             }
             dueDate = formatDateLocal(addDaysLocal(today, 2));
           }
@@ -11322,7 +11383,7 @@
             { id: 'feature-payments', title: 'Payment Types', tags: ['payment','notebook','office','gcash','adv','abono'], body: 'Notebook (cash), Office (office), GCash (digital), Adv (advance), Abono (transfer between clients or me).'},
             { id: 'feature-absent', title: 'Absent', tags: ['absent','skip','non collection'], body: 'Mark clients absent for specific dates to avoid overdue counting and adjust schedules.' },
             { id: 'feature-export', title: 'Export Data', tags: ['data','export','backup'], body: 'Settings → Data Management → Export Data downloads a JSON backup. Fully offline.' },
-            { id: 'calc', title: 'Loan Calculation', tags: ['calculate','interest','daily','amount','balance'], body: 'Daily = (Loan × (1 + Interest%)) ÷ Term days. Defaults: 20% interest, 48 days. Remaining = Total − Paid.' }
+            { id: 'calc', title: 'Loan Calculation', tags: ['calculate','interest','daily','amount','balance'], body: 'Daily = (Loan × (1 + Interest%)) ÷ Term days. Defaults: 20% interest, 48 days. Remaining = Total �� Paid.' }
           ];
 
           // Precompute simple IDF for semantic search
