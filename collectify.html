@@ -4636,6 +4636,7 @@
         // Load data (will automatically fall back to localStorage if db is null)
         try {
           await loadData();
+          loadHistoryFilters();
         } catch (e) {
           console.error("Data load failed; continuing with empty state.", e);
         }
@@ -7523,7 +7524,7 @@
                 <div>
                   <h4>${payment.clientName}</h4>
                   <p>₱${payment.amount.toFixed(2)} • ${parseLocalDate(payment.date).toLocaleDateString()}</p>
-                  ${payment.paymentType === 'abono' && payment.lenderName ? `<p>Lender: ${payment.lenderName}${(payment.repaid||0)>0 ? ` • Repaid: ₱${(payment.repaid||0).toFixed(2)} • Outstanding: ₱${Math.max(0, payment.amount - (payment.repaid||0)).toFixed(2)}` : ''}</p>` : ''}
+                  ${payment.paymentType === 'abono' && payment.lenderName ? `<p>Lender: ${payment.lenderName}${(payment.repaid||0)>0 ? ` ��� Repaid: ₱${(payment.repaid||0).toFixed(2)} • Outstanding: ₱${Math.max(0, payment.amount - (payment.repaid||0)).toFixed(2)}` : ''}</p>` : ''}
                   ${payment.paymentType === 'adv' && payment.initialAmount && payment.initialAmount > payment.amount ? `<p>Borrowed via Abono: ₱${(payment.initialAmount - payment.amount).toFixed(2)}${formatAdvBorrowers(payment)} • Remaining: ₱${payment.amount.toFixed(2)} of ₱${payment.initialAmount.toFixed(2)}</p>` : ''}
                   <p><span class="status-badge status-active">${payment.type}</span></p>
                 </div>
@@ -11382,7 +11383,7 @@
             { id: 'feature-payments', title: 'Payment Types', tags: ['payment','notebook','office','gcash','adv','abono'], body: 'Notebook (cash), Office (office), GCash (digital), Adv (advance), Abono (transfer between clients or me).'},
             { id: 'feature-absent', title: 'Absent', tags: ['absent','skip','non collection'], body: 'Mark clients absent for specific dates to avoid overdue counting and adjust schedules.' },
             { id: 'feature-export', title: 'Export Data', tags: ['data','export','backup'], body: 'Settings → Data Management → Export Data downloads a JSON backup. Fully offline.' },
-            { id: 'calc', title: 'Loan Calculation', tags: ['calculate','interest','daily','amount','balance'], body: 'Daily = (Loan × (1 + Interest%)) ÷ Term days. Defaults: 20% interest, 48 days. Remaining = Total − Paid.' }
+            { id: 'calc', title: 'Loan Calculation', tags: ['calculate','interest','daily','amount','balance'], body: 'Daily = (Loan × (1 + Interest%)) ÷ Term days. Defaults: 20% interest, 48 days. Remaining = Total �� Paid.' }
           ];
 
           // Precompute simple IDF for semantic search
