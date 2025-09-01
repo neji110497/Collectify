@@ -11074,5 +11074,431 @@
         if (e.key === "Escape") endTutorial();
       });
     </script>
+
+    <!-- AI Chatbot Button -->
+    <button id="aiChatButton" onclick="toggleAIChat()" aria-label="AI Assistant">
+      <div class="ai-pulse"></div>
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" fill="currentColor"/>
+        <path d="M19 15L19.91 17.26L22 18L19.91 18.74L19 21L18.09 18.74L16 18L18.09 17.26L19 15Z" fill="currentColor"/>
+        <path d="M5 6L5.91 8.26L8 9L5.91 9.74L5 12L4.09 9.74L2 9L4.09 8.26L5 6Z" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <!-- AI Chatbot Modal -->
+    <div id="aiChatModal" class="ai-chat-modal" onclick="closeAIChatOnOverlay(event)">
+      <div class="ai-chat-content">
+        <div class="ai-chat-header">
+          <div>
+            <h3>🤖 Collectify AI Assistant</h3>
+            <div class="ai-status">Ready to help with your lending app</div>
+          </div>
+          <button class="ai-chat-close" onclick="closeAIChat()" aria-label="Close chat">✕</button>
+        </div>
+
+        <div class="ai-chat-messages" id="aiChatMessages">
+          <div class="ai-message assistant">
+            👋 Hi! I'm your Collectify AI assistant. I can help you with:
+            <br><br>
+            • Understanding app features
+            <br>• Finding information about clients
+            <br>• Explaining payment types
+            <br>• Navigating the interface
+            <br>• Analyzing your data
+            <br><br>
+            What would you like to know?
+          </div>
+          <div class="ai-quick-actions">
+            <button class="ai-quick-action" onclick="sendQuickMessage('How do I add a new client?')">Add New Client</button>
+            <button class="ai-quick-action" onclick="sendQuickMessage('Show me overdue clients')">Show Overdue</button>
+            <button class="ai-quick-action" onclick="sendQuickMessage('Explain payment types')">Payment Types</button>
+            <button class="ai-quick-action" onclick="sendQuickMessage('How does the daily tracker work?')">Daily Tracker</button>
+          </div>
+        </div>
+
+        <div class="ai-chat-input-area">
+          <textarea
+            id="aiChatInput"
+            class="ai-chat-input"
+            placeholder="Ask me anything about Collectify..."
+            rows="1"
+            onkeydown="handleChatInputKeydown(event)"
+            oninput="autoResizeChatInput()"
+          ></textarea>
+          <button id="aiChatSend" class="ai-chat-send" onclick="sendAIMessage()" aria-label="Send message">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // AI Chatbot Implementation
+      class CollectifyAI {
+        constructor() {
+          this.isOpen = false;
+          this.isTyping = false;
+          this.messageHistory = [];
+
+          // Knowledge base about app features
+          this.knowledge = {
+            navigation: {
+              'dashboard': 'The main overview showing your lending business statistics, total clients, active loans, and collected amounts. Access from the top tabs or sidebar.',
+              'daily tracker': 'Track daily payments by date, see who paid and who didn\'t, view expected vs actual collections.',
+              'summary': 'View payment summaries by date with breakdowns by payment method (Notebook, GCash, Office, etc.).',
+              'overdue': 'See clients with overdue payments and those due soon. Automatically calculated based on loan terms.',
+              'notebook': 'Record cash payments collected manually. Most common payment method.',
+              'office': 'Record payments collected at your office location.',
+              'gcash': 'Record digital payments received through GCash or other e-wallets.',
+              'adv': 'Record advance payments from clients for future dates.',
+              'abono': 'Transfer advances between clients or from your own funds.',
+              'absent': 'Mark clients as absent on specific dates to adjust payment schedules.',
+              'settings': 'Configure interest rates, loan terms, holidays, notification settings, and export data.'
+            },
+
+            features: {
+              'add client': 'Click "+ Add New Client" on Dashboard. Fill in name, contact, address, co-maker info, collateral details, loan amount, and start date.',
+              'payment types': 'Notebook (cash), Office (office collection), GCash (digital), Adv (advance), Abono (transfer between clients)',
+              'loan calculation': 'Daily Amount = (Loan × (1 + Interest Rate)) ÷ Term Days. Default: 20% interest, 48-day term.',
+              'overdue detection': 'Automatically calculated when payment due date passes without full payment.',
+              'dark mode': 'Toggle in Settings or click the theme button in the header.',
+              'data export': 'Export all data as JSON file from Settings → Data Management.',
+              'notifications': 'Enable sound alerts for overdue payments in Settings.',
+              'holiday calendar': 'Set non-collection days in Settings to skip Sundays and holidays.',
+              'release days': 'Configure which days loans can be released (affects start date validation).'
+            },
+
+            calculations: {
+              'interest': 'Default 20% total interest on loan amount.',
+              'daily amount': 'Total loan amount with interest divided by term (default 48 days).',
+              'remaining balance': 'Loan amount minus all payments received.',
+              'overdue calculation': 'Days past due date × daily amount = overdue amount.',
+              'advance scheduling': 'Advance payments automatically apply to future collection dates.'
+            },
+
+            tips: {
+              'efficient workflow': 'Use Daily Tracker to mark payments quickly, search clients by typing names.',
+              'data backup': 'Regularly export data from Settings for backup.',
+              'sunday payments': 'Sunday payments automatically split between Saturday and Monday.',
+              'client search': 'Type client names in search boxes for quick filtering.',
+              'full payment': 'Use "Full Pay" button to automatically calculate remaining balance.',
+              'absent tracking': 'Mark clients absent to prevent overdue calculations on non-collection days.'
+            }
+          };
+
+          // Common intents and responses
+          this.intents = {
+            greeting: ['hi', 'hello', 'hey', 'good morning', 'good afternoon'],
+            help: ['help', 'assist', 'guide', 'how', 'what', 'explain'],
+            clients: ['client', 'customer', 'borrower', 'add client', 'new client'],
+            payments: ['payment', 'pay', 'collect', 'money', 'cash', 'gcash', 'notebook'],
+            overdue: ['overdue', 'late', 'missed payment', 'due'],
+            navigation: ['go to', 'show me', 'open', 'navigate', 'where is'],
+            calculations: ['calculate', 'interest', 'daily amount', 'balance'],
+            data: ['export', 'backup', 'data', 'save'],
+            settings: ['setting', 'configure', 'setup', 'theme', 'dark mode']
+          };
+        }
+
+        // Analyze user message and generate response
+        processMessage(message) {
+          const normalizedMsg = message.toLowerCase().trim();
+
+          // Check for specific questions first
+          if (this.isGreeting(normalizedMsg)) {
+            return this.getGreetingResponse();
+          }
+
+          if (this.isNavigationRequest(normalizedMsg)) {
+            return this.getNavigationResponse(normalizedMsg);
+          }
+
+          if (this.isFeatureQuestion(normalizedMsg)) {
+            return this.getFeatureResponse(normalizedMsg);
+          }
+
+          if (this.isDataRequest(normalizedMsg)) {
+            return this.getDataResponse(normalizedMsg);
+          }
+
+          if (this.isCalculationQuestion(normalizedMsg)) {
+            return this.getCalculationResponse(normalizedMsg);
+          }
+
+          // Fallback to general help
+          return this.getGeneralHelpResponse(normalizedMsg);
+        }
+
+        isGreeting(msg) {
+          return this.intents.greeting.some(greeting => msg.includes(greeting));
+        }
+
+        getGreetingResponse() {
+          const responses = [
+            "Hello! I'm here to help you manage your lending business with Collectify. What would you like to know?",
+            "Hi there! Ready to help you with payments, clients, or any app features. What can I assist with?",
+            "Welcome! I can guide you through Collectify's features. How can I help today?"
+          ];
+          return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        isNavigationRequest(msg) {
+          return msg.includes('show me') || msg.includes('go to') || msg.includes('open') ||
+                 msg.includes('navigate') || msg.includes('where');
+        }
+
+        getNavigationResponse(msg) {
+          if (msg.includes('overdue')) {
+            this.switchToTab('overdue');
+            return "🔍 Opening the Overdue tab for you! Here you can see clients with late payments and those due soon.";
+          }
+          if (msg.includes('dashboard')) {
+            this.switchToTab('dashboard');
+            return "📊 Switched to Dashboard! This shows your business overview with key statistics.";
+          }
+          if (msg.includes('daily tracker') || msg.includes('tracker')) {
+            this.switchToTab('daily-tracker');
+            return "📅 Opened Daily Tracker! Select a date to see who paid and who didn't.";
+          }
+          if (msg.includes('summary')) {
+            this.switchToTab('summary');
+            return "📋 Showing Summary tab! Pick a date to see payment breakdowns by type.";
+          }
+          if (msg.includes('settings')) {
+            this.switchToTab('settings');
+            return "⚙️ Opened Settings! Here you can configure interest rates, themes, and export data.";
+          }
+
+          return "🧭 I can help you navigate to: Dashboard, Daily Tracker, Summary, Overdue, or Settings. Which would you like to see?";
+        }
+
+        isFeatureQuestion(msg) {
+          return msg.includes('how') || msg.includes('add') || msg.includes('create') ||
+                 msg.includes('record') || msg.includes('payment');
+        }
+
+        getFeatureResponse(msg) {
+          if (msg.includes('add client') || msg.includes('new client')) {
+            return "👤 To add a new client:\n\n1. Click '+ Add New Client' on Dashboard\n2. Fill in name, contact, address\n3. Add co-maker information\n4. Upload collateral photos\n5. Set loan amount and start date\n6. Click 'Add Client'\n\nThe app calculates daily payments automatically!";
+          }
+
+          if (msg.includes('payment') && (msg.includes('record') || msg.includes('add'))) {
+            return "💰 To record payments:\n\n📓 **Notebook**: Cash payments\n🏢 **Office**: Office collections\n📱 **GCash**: Digital payments\n⏰ **Adv**: Future advance payments\n🔄 **Abono**: Transfer between clients\n\nSelect client → Enter amount → Choose date → Record!";
+          }
+
+          if (msg.includes('overdue') || msg.includes('late')) {
+            return "⚠️ **Overdue Management**:\n\n• Red status = Payment overdue\n• Orange status = Due soon\n• Auto-calculated based on loan terms\n• Check Overdue tab for full list\n• Use Daily Tracker to catch up on missed days";
+          }
+
+          if (msg.includes('absent')) {
+            return "🚫 **Absent Tracking**:\n\n• Mark clients absent on specific dates\n• Prevents overdue calculations\n• Set reason (sick, travel, etc.)\n• Adjusts payment schedules automatically\n• Access via Absent tab";
+          }
+
+          return "🎯 I can explain: Adding clients, Recording payments, Managing overdue accounts, Tracking absences, or any other feature. What specifically interests you?";
+        }
+
+        isDataRequest(msg) {
+          return msg.includes('data') || msg.includes('export') || msg.includes('backup') ||
+                 msg.includes('save') || msg.includes('statistics');
+        }
+
+        getDataResponse(msg) {
+          if (msg.includes('export') || msg.includes('backup')) {
+            return "💾 **Data Export & Backup**:\n\n1. Go to Settings tab\n2. Click 'Export Data' button\n3. Download JSON file\n4. Store safely for backup\n\n📱 For APK conversion: Data stays in device storage and works offline!";
+          }
+
+          if (msg.includes('statistics') || msg.includes('stats')) {
+            const stats = this.getCurrentStats();
+            return `📊 **Current Statistics**:\n\n• Total Clients: ${stats.totalClients}\n• Active Loans: ${stats.activeLoans}\n• Total Loaned: ${stats.totalLoaned}\n• Total Collected: ${stats.totalCollected}\n• Today's Collections: ${stats.todayCollections}`;
+          }
+
+          return "📈 I can help with: Data export/backup, Current statistics, Storage info, or Data management features.";
+        }
+
+        isCalculationQuestion(msg) {
+          return msg.includes('calculate') || msg.includes('interest') || msg.includes('daily') ||
+                 msg.includes('balance') || msg.includes('amount');
+        }
+
+        getCalculationResponse(msg) {
+          return "🧮 **Loan Calculations**:\n\n📐 **Daily Amount Formula**:\n(Loan Amount × (1 + Interest Rate)) ÷ Term Days\n\n💡 **Default Settings**:\n• Interest Rate: 20%\n• Term: 48 days\n\n💰 **Example**: ₱5,000 loan\n• Total with interest: ₱6,000\n• Daily payment: ₱125\n\nChange defaults in Settings!";
+        }
+
+        getGeneralHelpResponse(msg) {
+          // Try to find relevant knowledge
+          for (const [category, items] of Object.entries(this.knowledge)) {
+            for (const [key, value] of Object.entries(items)) {
+              if (msg.includes(key.toLowerCase())) {
+                return `💡 **${key.charAt(0).toUpperCase() + key.slice(1)}**:\n\n${value}`;
+              }
+            }
+          }
+
+          return "🤔 I'm not sure about that specific question, but I can help with:\n\n🎯 **Main Features**:\n• Adding and managing clients\n• Recording different payment types\n• Tracking daily collections\n• Managing overdue accounts\n• Exporting data\n\n📱 **Navigation**: Dashboard, Daily Tracker, Summary, Overdue, Settings\n\nTry asking about any of these topics!";
+        }
+
+        // Helper functions
+        switchToTab(tabName) {
+          // Switch to the specified tab
+          if (typeof switchTab === 'function') {
+            switchTab(tabName);
+          }
+        }
+
+        getCurrentStats() {
+          try {
+            return {
+              totalClients: clients ? clients.length : 0,
+              activeLoans: clients ? clients.filter(c => c.status === 'active').length : 0,
+              totalLoaned: '₱' + (clients ? clients.reduce((sum, c) => sum + (c.loanAmount || 0), 0).toLocaleString() : '0'),
+              totalCollected: '₱' + (clients ? clients.reduce((sum, c) => sum + ((c.loanAmount || 0) - (c.remainingBalance || 0)), 0).toLocaleString() : '0'),
+              todayCollections: '₱0' // This would need to be calculated from today's payments
+            };
+          } catch (e) {
+            return {
+              totalClients: 0,
+              activeLoans: 0,
+              totalLoaned: '₱0',
+              totalCollected: '₱0',
+              todayCollections: '₱0'
+            };
+          }
+        }
+      }
+
+      // Initialize AI assistant
+      const collectifyAI = new CollectifyAI();
+
+      // Chat interface functions
+      function toggleAIChat() {
+        const modal = document.getElementById('aiChatModal');
+        const button = document.getElementById('aiChatButton');
+
+        if (collectifyAI.isOpen) {
+          closeAIChat();
+        } else {
+          openAIChat();
+        }
+      }
+
+      function openAIChat() {
+        const modal = document.getElementById('aiChatModal');
+        const button = document.getElementById('aiChatButton');
+
+        modal.classList.add('active');
+        button.classList.add('chatting');
+        collectifyAI.isOpen = true;
+
+        // Focus input after animation
+        setTimeout(() => {
+          document.getElementById('aiChatInput').focus();
+        }, 300);
+      }
+
+      function closeAIChat() {
+        const modal = document.getElementById('aiChatModal');
+        const button = document.getElementById('aiChatButton');
+
+        modal.classList.remove('active');
+        button.classList.remove('chatting');
+        collectifyAI.isOpen = false;
+      }
+
+      function closeAIChatOnOverlay(event) {
+        if (event.target.id === 'aiChatModal') {
+          closeAIChat();
+        }
+      }
+
+      function sendQuickMessage(message) {
+        document.getElementById('aiChatInput').value = message;
+        sendAIMessage();
+      }
+
+      function sendAIMessage() {
+        const input = document.getElementById('aiChatInput');
+        const message = input.value.trim();
+
+        if (!message) return;
+
+        // Add user message
+        addChatMessage(message, 'user');
+        input.value = '';
+        autoResizeChatInput();
+
+        // Show typing indicator
+        showTypingIndicator();
+
+        // Generate AI response with realistic delay
+        setTimeout(() => {
+          hideTypingIndicator();
+          const response = collectifyAI.processMessage(message);
+          addChatMessage(response, 'assistant');
+        }, 800 + Math.random() * 1200); // Random delay 0.8-2s for realism
+      }
+
+      function addChatMessage(message, type) {
+        const messagesContainer = document.getElementById('aiChatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `ai-message ${type}`;
+        messageDiv.textContent = message;
+
+        // Convert newlines to <br> for proper formatting
+        messageDiv.innerHTML = message.replace(/\n/g, '<br>');
+
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Store in history
+        collectifyAI.messageHistory.push({ message, type, timestamp: Date.now() });
+      }
+
+      function showTypingIndicator() {
+        const messagesContainer = document.getElementById('aiChatMessages');
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'ai-message assistant typing';
+        typingDiv.id = 'aiTypingIndicator';
+        typingDiv.textContent = '🤖 AI is thinking...';
+
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        collectifyAI.isTyping = true;
+      }
+
+      function hideTypingIndicator() {
+        const typingIndicator = document.getElementById('aiTypingIndicator');
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
+        collectifyAI.isTyping = false;
+      }
+
+      function handleChatInputKeydown(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          sendAIMessage();
+        }
+      }
+
+      function autoResizeChatInput() {
+        const input = document.getElementById('aiChatInput');
+        input.style.height = 'auto';
+        const newHeight = Math.min(input.scrollHeight, 100); // Max 100px
+        input.style.height = newHeight + 'px';
+      }
+
+      // Initialize chat on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        // Add keyboard shortcut (Ctrl/Cmd + /)
+        document.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+            e.preventDefault();
+            toggleAIChat();
+          }
+        });
+      });
+    </script>
   </body>
 </html>
