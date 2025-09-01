@@ -11697,10 +11697,33 @@ self.addEventListener('fetch', (event) => {
       let webllmReady = false;
       let webllmModelId = 'Phi-3-mini-4k-instruct-q4f32_1-MLC';
 
+      const llmSupport = (() => {
+        try {
+          const secure = location.protocol === 'https:' || location.hostname === 'localhost';
+          const coi = typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated === true;
+          const hasGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
+          return { supported: secure && hasGPU && coi, secure, coi, hasGPU };
+        } catch (_) { return { supported: false, secure: false, coi: false, hasGPU: false }; }
+      })();
+      function isLLMSupported(){ return !!llmSupport.supported; }
+      function reflectLLMSupportInUI(){
+        const statusEl = document.getElementById('aiEngineStatus');
+        const enableBtn = document.getElementById('enableLLMButton');
+        const rulesBtn = document.getElementById('switchToRulesButton');
+        if (!statusEl || !enableBtn || !rulesBtn) return;
+        if (!isLLMSupported()){
+          aiMode = 'rules';
+          statusEl.textContent = 'Engine: Rules (offline)';
+          enableBtn.style.display = 'none';
+          rulesBtn.style.display = 'none';
+        }
+      }
+
       async function enableLLM() {
         try {
           const statusEl = document.getElementById('aiEngineStatus');
           const progressEl = document.getElementById('aiDownloadProgress');
+          if (!isLLMSupported()) { aiMode = 'rules'; updateEngineUI(); return; }
           if (webllmReady) { aiMode = 'llm'; updateEngineUI(); return; }
           statusEl.textContent = 'Engine: LLM (preparing)';
           progressEl.style.display = 'block';
@@ -11725,7 +11748,6 @@ self.addEventListener('fetch', (event) => {
           aiMode = 'llm';
           updateEngineUI();
         } catch (e) {
-          showNotification('Failed to load LLM. Staying on rules engine.', 'error');
           aiMode = 'rules';
           updateEngineUI();
         }
@@ -11793,6 +11815,8 @@ self.addEventListener('fetch', (event) => {
 
       // Initialize chat on page load
       document.addEventListener('DOMContentLoaded', function() {
+        // Reflect environment support for on-device LLM
+        reflectLLMSupportInUI();
         // Add keyboard shortcut (Ctrl/Cmd + /)
         document.addEventListener('keydown', function(e) {
           if ((e.ctrlKey || e.metaKey) && e.key === '/') {
