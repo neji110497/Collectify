@@ -6920,7 +6920,7 @@
               <div style="display:flex; justify-content: space-between; align-items:center;">
                 <div>
                   <h4>${it.clientName}</h4>
-                  <p>Paid: ��${it.paid.toFixed(2)} • Expected: ₱${it.expected.toFixed(2)} <span class="status-badge status-overpay" style="margin-left:6px">Over</span></p>
+                  <p>Paid: ₱${it.paid.toFixed(2)} • Expected: ₱${it.expected.toFixed(2)} <span class="status-badge status-overpay" style="margin-left:6px">Over</span></p>
                   <p>Over by ₱${it.overBy.toFixed(2)}</p>
                 </div>
               </div>
@@ -7753,7 +7753,7 @@
           <div class="tracker-client-item">
             <div class="tracker-client-info">
               <h5>${entry.clientName}</h5>
-              <p>Total paid today: ��${entry.totalPaid.toFixed(2)}</p>
+              <p>Total paid today: ₱${entry.totalPaid.toFixed(2)}</p>
               <p>${typeBadges} ${statusBadge}</p>
               ${extraLine}
             </div>
@@ -8133,7 +8133,7 @@
         const date = document.getElementById('abonoPaymentDate')?.value || todayLocalDateStr();
         if (!lenderId) { info.textContent = 'Available advance: ₱0.00'; return; }
         const avail = computeAvailableAdvance(lenderId, date);
-        info.textContent = `Available advance: ��${avail.toFixed(2)}`;
+        info.textContent = `Available advance: ₱${avail.toFixed(2)}`;
       }
 
       // Settings functions
