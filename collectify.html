@@ -3266,10 +3266,10 @@
                   <input
                     type="range"
                     id="notificationVolume"
-                    min="0.1"
-                    max="1"
-                    step="0.1"
-                    value="0.7"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="70"
                     onchange="updateNotificationVolume()"
                   />
                 </div>
@@ -8823,7 +8823,7 @@
               .filter(p=>p.clientId==clientId && p.date===ds && p.type==='full')
               .reduce((s,p)=>s + (Number(p.amount)||0), 0);
             const amountsHtml = [
-              nbAmt>0 ? `<span class=\"cal-amt cal-notebook\">₱${nbAmt.toFixed(0)}</span>` : '',
+              nbAmt>0 ? `<span class=\"cal-amt cal-notebook\">���${nbAmt.toFixed(0)}</span>` : '',
               ofAmt>0 ? `<span class=\"cal-amt cal-office\">₱${ofAmt.toFixed(0)}</span>` : '',
               gcAmt>0 ? `<span class=\"cal-amt cal-gcash\">₱${gcAmt.toFixed(0)}</span>` : '',
               adAmt>0 ? `<span class=\"cal-amt cal-adv\" title=\"Advance\">₱${adAmt.toFixed(0)}</span>` : '',
@@ -8952,7 +8952,7 @@
 
           const volumeInput = document.getElementById('notificationVolume');
           if (volumeInput) {
-            volumeInput.value = settings.volume;
+            volumeInput.value = Math.round((settings.volume || 0) * 100);
           }
 
           const soundSelect = document.getElementById('notificationSound');
@@ -9219,7 +9219,8 @@
       function updateNotificationVolume() {
         if (!notificationSystem) return;
 
-        const volume = parseFloat(document.getElementById('notificationVolume').value);
+        const raw = parseFloat(document.getElementById('notificationVolume').value);
+        const volume = Math.max(0, Math.min(1, (raw > 1 ? raw / 100 : raw)));
         notificationSystem.updateSettings({ volume });
       }
 
