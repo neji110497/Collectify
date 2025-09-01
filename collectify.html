@@ -3710,6 +3710,10 @@
                 "
               >
                 <h3>Absence History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="absentFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('absent','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="absentFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('absent','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button
                   class="btn btn-danger"
                   onclick="confirmClearAbsenceHistory()"
