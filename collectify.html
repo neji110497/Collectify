@@ -9194,6 +9194,36 @@
         const client = clients.find((c) => c.id === clientId);
         if (!client) return;
 
+        // Build collateral section for client tab
+        let collateralSection = '';
+        if (client.collateral && (client.collateral.description || client.collateral.photoBase64 || (client.collateral.photosBase64 && client.collateral.photosBase64.length))) {
+          collateralSection = `
+            <div class="detail-section">
+              <hr style="margin: 15px 0; border: 0.5px solid var(--ios-opaque-separator);">
+              <h4 class="detail-row" style="color: var(--ios-blue); margin-bottom: 10px;">Collateral Information</h4>
+              <div class="detail-row"><strong>Description:</strong> ${client.collateral.description || 'Not provided'}</div>`;
+
+          const collImgs = (client.collateral.photosBase64 && client.collateral.photosBase64.length)
+            ? client.collateral.photosBase64
+            : (client.collateral.photoBase64 ? [client.collateral.photoBase64] : []);
+
+          if (collImgs.length) {
+            collateralSection += `
+              <div class="detail-row" style="margin-top: 10px;">
+                <strong>Photo${collImgs.length>1 ? 's' : ''}:</strong><br>
+                <div class="collateral-preview-list">
+                  ${collImgs.map(src => `<img class="detail-image" src="${src}"
+                     style="max-width: 120px; max-height: 120px; border-radius: var(--ios-border-radius);
+                            border: 1px solid var(--ios-opaque-separator); margin-top: 8px; cursor: pointer;"
+                     onclick="enlargeCollateralImage('${src}')"
+                     alt="Collateral Photo">`).join('')}
+                </div>
+                <br><small style="color: var(--ios-secondary-label);">Tap image to enlarge</small>
+              </div>`;
+          }
+          collateralSection += `</div>`;
+        }
+
         // Client Tab Content
         const clientTabHtml = `
           <div class="client-detail-stagger" style="display:grid; gap:8px;">
@@ -9206,6 +9236,9 @@
             <div class="detail-row"><strong>Daily Amount:</strong> ₱${client.dailyAmount.toFixed(2)}</div>
             <div class="detail-row"><strong>Due Date:</strong> ${parseLocalDate(client.dueDate).toLocaleDateString()} (${formatDaysLeft(client)})</div>
             <div class="detail-row"><strong>Status:</strong> ${client.remainingBalance <= 0 ? "Paid" : "Active"}</div>
+
+            ${collateralSection}
+
             <div class="detail-section">
               <hr style="margin: 15px 0; border: 0.5px solid var(--ios-opaque-separator);">
               <h4 class="detail-row" style="color: var(--ios-blue); margin-bottom: 8px;">Payment Calendar</h4>
@@ -11303,7 +11336,7 @@
 
           if (msg.includes('export')) {
             this.switchToTab('settings');
-            return 'Opening Settings → Use Export Data to download your backup.';
+            return 'Opening Settings ��� Use Export Data to download your backup.';
           }
 
           // 3) Semantic help fallback
