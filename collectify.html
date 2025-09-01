@@ -11098,21 +11098,15 @@
 
         <div class="ai-chat-messages" id="aiChatMessages">
           <div class="ai-message assistant">
-            👋 Hi! I'm your Collectify AI assistant. I can help you with:
+            👋 Hi! I'm Collectify AI (offline). I understand natural language and keywords. I can navigate tabs, find clients, record payments, show overdue/paid, explain any feature, and summarize stats.
             <br><br>
-            • Understanding app features
-            <br>• Finding information about clients
-            <br>• Explaining payment types
-            <br>• Navigating the interface
-            <br>• Analyzing your data
-            <br><br>
-            What would you like to know?
+            Try: “record 200 for Juan via GCash today”, “show overdue”, “open daily tracker”, “view Ana’s details”.
           </div>
           <div class="ai-quick-actions">
-            <button class="ai-quick-action" onclick="sendQuickMessage('How do I add a new client?')">Add New Client</button>
-            <button class="ai-quick-action" onclick="sendQuickMessage('Show me overdue clients')">Show Overdue</button>
-            <button class="ai-quick-action" onclick="sendQuickMessage('Explain payment types')">Payment Types</button>
-            <button class="ai-quick-action" onclick="sendQuickMessage('How does the daily tracker work?')">Daily Tracker</button>
+            <button class="ai-quick-action" onclick="sendQuickMessage('Record 200 for Juan via GCash today')">Record ₱200 GCash</button>
+            <button class="ai-quick-action" onclick="sendQuickMessage('Show overdue clients')">Show Overdue</button>
+            <button class="ai-quick-action" onclick="sendQuickMessage('Open daily tracker')">Open Tracker</button>
+            <button class="ai-quick-action" onclick="sendQuickMessage('How do I export data?')">Export Data</button>
           </div>
         </div>
 
@@ -11141,230 +11135,352 @@
           this.isOpen = false;
           this.isTyping = false;
           this.messageHistory = [];
+          this.lastTopic = null;
 
-          // Knowledge base about app features
-          this.knowledge = {
-            navigation: {
-              'dashboard': 'The main overview showing your lending business statistics, total clients, active loans, and collected amounts. Access from the top tabs or sidebar.',
-              'daily tracker': 'Track daily payments by date, see who paid and who didn\'t, view expected vs actual collections.',
-              'summary': 'View payment summaries by date with breakdowns by payment method (Notebook, GCash, Office, etc.).',
-              'overdue': 'See clients with overdue payments and those due soon. Automatically calculated based on loan terms.',
-              'notebook': 'Record cash payments collected manually. Most common payment method.',
-              'office': 'Record payments collected at your office location.',
-              'gcash': 'Record digital payments received through GCash or other e-wallets.',
-              'adv': 'Record advance payments from clients for future dates.',
-              'abono': 'Transfer advances between clients or from your own funds.',
-              'absent': 'Mark clients as absent on specific dates to adjust payment schedules.',
-              'settings': 'Configure interest rates, loan terms, holidays, notification settings, and export data.'
-            },
-
-            features: {
-              'add client': 'Click "+ Add New Client" on Dashboard. Fill in name, contact, address, co-maker info, collateral details, loan amount, and start date.',
-              'edit client': 'To edit client information: Go to Dashboard → Find the client in the client list → Click the "Edit" button next to their name → Update name, contact, address, co-maker details, or collateral photos → Click "Save Changes" to update the client record.',
-              'payment types': 'Notebook (cash), Office (office collection), GCash (digital), Adv (advance), Abono (transfer between clients)',
-              'loan calculation': 'Daily Amount = (Loan × (1 + Interest Rate)) ÷ Term Days. Default: 20% interest, 48-day term.',
-              'overdue detection': 'Automatically calculated when payment due date passes without full payment.',
-              'dark mode': 'Toggle in Settings or click the theme button in the header.',
-              'data export': 'Export all data as JSON file from Settings → Data Management.',
-              'notifications': 'Enable sound alerts for overdue payments in Settings.',
-              'holiday calendar': 'Set non-collection days in Settings to skip Sundays and holidays.',
-              'release days': 'Configure which days loans can be released (affects start date validation).'
-            },
-
-            calculations: {
-              'interest': 'Default 20% total interest on loan amount.',
-              'daily amount': 'Total loan amount with interest divided by term (default 48 days).',
-              'remaining balance': 'Loan amount minus all payments received.',
-              'overdue calculation': 'Days past due date × daily amount = overdue amount.',
-              'advance scheduling': 'Advance payments automatically apply to future collection dates.'
-            },
-
-            tips: {
-              'efficient workflow': 'Use Daily Tracker to mark payments quickly, search clients by typing names.',
-              'data backup': 'Regularly export data from Settings for backup.',
-              'sunday payments': 'Sunday payments automatically split between Saturday and Monday.',
-              'client search': 'Type client names in search boxes for quick filtering.',
-              'full payment': 'Use "Full Pay" button to automatically calculate remaining balance.',
-              'absent tracking': 'Mark clients absent to prevent overdue calculations on non-collection days.'
-            }
+          // Synonyms and keywords
+          this.tabSynonyms = {
+            'dashboard': ['dashboard', 'home', 'stats', 'overview'],
+            'daily-tracker': ['daily tracker', 'tracker', 'today list', 'payments today', 'paid today'],
+            'summary': ['summary', 'report', 'breakdown'],
+            'overdue': ['overdue', 'late', 'due soon', 'missed', 'show due', 'due list'],
+            'notebook': ['notebook', 'cash', 'cashbook'],
+            'office': ['office', 'frontdesk', 'desk'],
+            'gcash': ['gcash', 'digital', 'ewallet'],
+            'adv': ['adv', 'advance', 'advance payment'],
+            'abono': ['abono', 'transfer'],
+            'absent': ['absent', 'leave', 'no collection'],
+            'settings': ['settings', 'config', 'preferences']
           };
 
-          // Common intents and responses
-          this.intents = {
-            greeting: ['hi', 'hello', 'hey', 'good morning', 'good afternoon'],
-            help: ['help', 'assist', 'guide', 'how', 'what', 'explain'],
-            clients: ['client', 'customer', 'borrower', 'add client', 'new client', 'edit client', 'update client', 'modify client', 'change client'],
-            payments: ['payment', 'pay', 'collect', 'money', 'cash', 'gcash', 'notebook'],
-            overdue: ['overdue', 'late', 'missed payment', 'due'],
-            navigation: ['go to', 'show me', 'open', 'navigate', 'where is'],
-            calculations: ['calculate', 'interest', 'daily amount', 'balance'],
-            data: ['export', 'backup', 'data', 'save'],
-            settings: ['setting', 'configure', 'setup', 'theme', 'dark mode']
+          this.payTypeSynonyms = {
+            notebook: ['notebook', 'cash', 'cashbook'],
+            office: ['office'],
+            gcash: ['gcash', 'g-cash', 'digital'],
+            adv: ['adv', 'advance'],
+            abono: ['abono', 'transfer']
           };
-        }
 
-        // Analyze user message and generate response
-        processMessage(message) {
-          const normalizedMsg = message.toLowerCase().trim();
-
-          // Check for specific questions first
-          if (this.isGreeting(normalizedMsg)) {
-            return this.getGreetingResponse();
-          }
-
-          if (this.isNavigationRequest(normalizedMsg)) {
-            return this.getNavigationResponse(normalizedMsg);
-          }
-
-          if (this.isFeatureQuestion(normalizedMsg)) {
-            return this.getFeatureResponse(normalizedMsg);
-          }
-
-          if (this.isDataRequest(normalizedMsg)) {
-            return this.getDataResponse(normalizedMsg);
-          }
-
-          if (this.isCalculationQuestion(normalizedMsg)) {
-            return this.getCalculationResponse(normalizedMsg);
-          }
-
-          // Fallback to general help
-          return this.getGeneralHelpResponse(normalizedMsg);
-        }
-
-        isGreeting(msg) {
-          return this.intents.greeting.some(greeting => msg.includes(greeting));
-        }
-
-        getGreetingResponse() {
-          const responses = [
-            "Hello! I'm here to help you manage your lending business with Collectify. What would you like to know?",
-            "Hi there! Ready to help you with payments, clients, or any app features. What can I assist with?",
-            "Welcome! I can guide you through Collectify's features. How can I help today?"
+          // Knowledge base documents (compact, offline)
+          this.knowledgeDocs = [
+            { id: 'nav-dashboard', title: 'Dashboard', tags: ['navigation','dashboard','stats','overview'], body: 'Main overview with total clients, active loans, amounts loaned/collected, and today\'s expected load.' },
+            { id: 'nav-tracker', title: 'Daily Tracker', tags: ['navigation','tracker','daily','today'], body: 'Track daily payments by date; see Paid Today, Not Paid, Expected vs Actual, and custom payments.' },
+            { id: 'nav-overdue', title: 'Overdue', tags: ['navigation','overdue','late','due soon'], body: 'Lists clients with overdue payments and those due soon based on loan terms.' },
+            { id: 'feature-add-client', title: 'Add Client', tags: ['client','add','create'], body: 'Dashboard → + Add New Client. Fill name, contact, address, co-maker, collateral, loan amount, start date. Daily payment auto-calculated.' },
+            { id: 'feature-payments', title: 'Payment Types', tags: ['payment','notebook','office','gcash','adv','abono'], body: 'Notebook (cash), Office (office), GCash (digital), Adv (advance), Abono (transfer between clients or me).'},
+            { id: 'feature-absent', title: 'Absent', tags: ['absent','skip','non collection'], body: 'Mark clients absent for specific dates to avoid overdue counting and adjust schedules.' },
+            { id: 'feature-export', title: 'Export Data', tags: ['data','export','backup'], body: 'Settings → Data Management → Export Data downloads a JSON backup. Fully offline.' },
+            { id: 'calc', title: 'Loan Calculation', tags: ['calculate','interest','daily','amount','balance'], body: 'Daily = (Loan × (1 + Interest%)) ÷ Term days. Defaults: 20% interest, 48 days. Remaining = Total − Paid.' }
           ];
-          return responses[Math.floor(Math.random() * responses.length)];
+
+          // Precompute simple IDF for semantic search
+          const allText = this.knowledgeDocs.map(d => (d.title + ' ' + d.tags.join(' ') + ' ' + d.body).toLowerCase());
+          this.vocab = new Map();
+          this.docTf = [];
+          const tokenize = (s) => s.replace(/[^a-z0-9 ₱.]/g, ' ').toLowerCase().split(/\s+/).filter(Boolean);
+          allText.forEach((txt, idx) => {
+            const tokens = tokenize(txt);
+            const tf = new Map();
+            tokens.forEach(t => tf.set(t, (tf.get(t) || 0) + 1));
+            this.docTf[idx] = tf;
+            const seen = new Set();
+            tokens.forEach(t => { if (!seen.has(t)) { this.vocab.set(t, (this.vocab.get(t)||0) + 1); seen.add(t); } });
+          });
+          this.N = this.knowledgeDocs.length;
+          this.tokenize = tokenize;
         }
 
-        isNavigationRequest(msg) {
-          return msg.includes('show me') || msg.includes('go to') || msg.includes('open') ||
-                 msg.includes('navigate') || msg.includes('where');
-        }
+        // Main entry
+        processMessage(message) {
+          const msg = (message || '').toLowerCase().trim();
+          if (!msg) return 'Please type a message.';
 
-        getNavigationResponse(msg) {
-          if (msg.includes('overdue')) {
-            this.switchToTab('overdue');
-            return "🔍 Opening the Overdue tab for you! Here you can see clients with late payments and those due soon.";
+          // 1) Greetings
+          if (/(^|\b)(hi|hello|hey|good\s*(morning|afternoon|evening))\b/.test(msg)) {
+            return this.random([
+              "Hello! Ask me to record payments, open tabs, find clients, or explain any feature.",
+              "Hi! Try: ‘record 200 for Juan via gcash today’ or ‘show overdue’."
+            ]);
           }
-          if (msg.includes('dashboard')) {
-            this.switchToTab('dashboard');
-            return "📊 Switched to Dashboard! This shows your business overview with key statistics.";
+
+          // 2) Intents
+          const nav = this.detectTab(msg);
+          if (nav) {
+            this.switchToTab(nav);
+            return this.tabResponse(nav);
           }
-          if (msg.includes('daily tracker') || msg.includes('tracker')) {
-            this.switchToTab('daily-tracker');
-            return "📅 Opened Daily Tracker! Select a date to see who paid and who didn't.";
-          }
-          if (msg.includes('summary')) {
-            this.switchToTab('summary');
-            return "📋 Showing Summary tab! Pick a date to see payment breakdowns by type.";
-          }
-          if (msg.includes('settings')) {
+
+          const pay = this.parsePaymentCommand(msg);
+          if (pay) return this.handleRecordPayment(pay);
+
+          const view = this.parseViewClient(msg);
+          if (view) return this.handleViewClient(view);
+
+          const list = this.parseListQuery(msg);
+          if (list) return this.handleListQuery(list);
+
+          if (msg.includes('export')) {
             this.switchToTab('settings');
-            return "⚙️ Opened Settings! Here you can configure interest rates, themes, and export data.";
+            return 'Opening Settings → Use Export Data to download your backup.';
           }
 
-          return "🧭 I can help you navigate to: Dashboard, Daily Tracker, Summary, Overdue, or Settings. Which would you like to see?";
+          // 3) Semantic help fallback
+          const best = this.semanticAnswer(msg);
+          if (best) return best;
+
+          return "I can navigate (dashboard, tracker, summary, overdue, settings), find clients, record payments (Notebook/Office/GCash/Adv/Abono), show overdue/paid, and explain features.";
         }
 
-        isFeatureQuestion(msg) {
-          return msg.includes('how') || msg.includes('add') || msg.includes('create') ||
-                 msg.includes('record') || msg.includes('payment');
-        }
-
-        getFeatureResponse(msg) {
-          if (msg.includes('add client') || msg.includes('new client')) {
-            return "👤 To add a new client:\n\n1. Click '+ Add New Client' on Dashboard\n2. Fill in name, contact, address\n3. Add co-maker information\n4. Upload collateral photos\n5. Set loan amount and start date\n6. Click 'Add Client'\n\nThe app calculates daily payments automatically!";
+        // Detect tab from synonyms
+        detectTab(msg) {
+          for (const [tab, keys] of Object.entries(this.tabSynonyms)) {
+            if (keys.some(k => msg.includes(k))) return tab;
           }
-
-          if (msg.includes('payment') && (msg.includes('record') || msg.includes('add'))) {
-            return "💰 To record payments:\n\n📓 **Notebook**: Cash payments\n🏢 **Office**: Office collections\n📱 **GCash**: Digital payments\n⏰ **Adv**: Future advance payments\n🔄 **Abono**: Transfer between clients\n\nSelect client → Enter amount → Choose date → Record!";
+          if (/\b(open|show|go to|navigate)\b/.test(msg)) {
+            if (/\bdue\b|overdue|late/.test(msg)) return 'overdue';
+            if (/tracker/.test(msg)) return 'daily-tracker';
           }
-
-          if (msg.includes('overdue') || msg.includes('late')) {
-            return "⚠️ **Overdue Management**:\n\n• Red status = Payment overdue\n• Orange status = Due soon\n• Auto-calculated based on loan terms\n• Check Overdue tab for full list\n• Use Daily Tracker to catch up on missed days";
-          }
-
-          if (msg.includes('absent')) {
-            return "🚫 **Absent Tracking**:\n\n• Mark clients absent on specific dates\n• Prevents overdue calculations\n• Set reason (sick, travel, etc.)\n• Adjusts payment schedules automatically\n• Access via Absent tab";
-          }
-
-          return "🎯 I can explain: Adding clients, Recording payments, Managing overdue accounts, Tracking absences, or any other feature. What specifically interests you?";
+          return null;
         }
 
-        isDataRequest(msg) {
-          return msg.includes('data') || msg.includes('export') || msg.includes('backup') ||
-                 msg.includes('save') || msg.includes('statistics');
+        tabResponse(tab) {
+          const map = {
+            'dashboard': '📊 Dashboard opened.',
+            'daily-tracker': '📅 Daily Tracker opened.',
+            'summary': '📋 Summary opened.',
+            'overdue': '🔍 Overdue opened.',
+            'settings': '⚙️ Settings opened.',
+            'notebook': '📓 Notebook ready.',
+            'office': '🏢 Office ready.',
+            'gcash': '📱 GCash ready.',
+            'adv': '⏩ Adv (advance) ready.',
+            'abono': '🔄 Abono ready.',
+            'absent': '🚫 Absent ready.'
+          };
+          return map[tab] || 'Opened.';
         }
 
-        getDataResponse(msg) {
-          if (msg.includes('export') || msg.includes('backup')) {
-            return "💾 **Data Export & Backup**:\n\n1. Go to Settings tab\n2. Click 'Export Data' button\n3. Download JSON file\n4. Store safely for backup\n\n📱 For APK conversion: Data stays in device storage and works offline!";
+        // Parse commands like: record 200 for juan via gcash today
+        parsePaymentCommand(msg) {
+          if (!/(record|add|log|pay|payment)/.test(msg)) return null;
+
+          const amountMatch = msg.match(/(?:₱|php|peso\s*)?([0-9]+(?:\.[0-9]{1,2})?)/i);
+          const amount = amountMatch ? parseFloat(amountMatch[1]) : null;
+
+          let payType = null;
+          for (const [type, arr] of Object.entries(this.payTypeSynonyms)) {
+            if (arr.some(k => msg.includes(k))) { payType = type; break; }
           }
+          if (!payType) payType = 'notebook';
 
-          if (msg.includes('statistics') || msg.includes('stats')) {
-            const stats = this.getCurrentStats();
-            return `📊 **Current Statistics**:\n\n• Total Clients: ${stats.totalClients}\n• Active Loans: ${stats.activeLoans}\n• Total Loaned: ${stats.totalLoaned}\n• Total Collected: ${stats.totalCollected}\n• Today's Collections: ${stats.todayCollections}`;
+          let when = 'today';
+          if (/tomorrow/.test(msg)) when = 'tomorrow';
+          else if (/yesterday/.test(msg)) when = 'yesterday';
+
+          const clientName = this.extractClientNameLike(msg);
+
+          if (!amount || !clientName) return null;
+          return { amount, payType, when, clientName };
+        }
+
+        // Parse view client commands
+        parseViewClient(msg) {
+          if (!/(view|show|open|details|profile)/.test(msg)) return null;
+          const name = this.extractClientNameLike(msg);
+          if (!name) return null;
+          return { clientName: name };
+        }
+
+        // Parse list queries like "who is overdue", "show paid today"
+        parseListQuery(msg) {
+          if (/overdue|due soon|due\b/.test(msg)) return { kind: 'overdue' };
+          if (/(paid today|who paid|payments today)/.test(msg)) return { kind: 'paidToday' };
+          if (/(not paid|unpaid today)/.test(msg)) return { kind: 'notPaidToday' };
+          return null;
+        }
+
+        // Actions
+        handleRecordPayment({ amount, payType, when, clientName }) {
+          const match = this.bestMatchClient(clientName);
+          if (!match) return "I couldn't find that client. Please check the name.";
+          const client = match.client;
+
+          // Determine date string
+          let dateStr = todayLocalDateStr();
+          if (when === 'tomorrow') dateStr = this.shiftDateStr(1);
+          if (when === 'yesterday') dateStr = this.shiftDateStr(-1);
+
+          const ok = this.setFormAndRecordPayment(payType, client.id, amount, dateStr);
+          if (!ok) return 'Unable to record payment in this context.';
+
+          return `Recorded ₱${amount.toFixed(2)} for ${client.name} via ${payType.toUpperCase()} (${dateStr}).`;
+        }
+
+        handleViewClient({ clientName }) {
+          const match = this.bestMatchClient(clientName);
+          if (!match) return "Client not found.";
+          try {
+            if (typeof openViewClient === 'function') openViewClient(match.client.id);
+          } catch (e) {}
+          return `Opening ${match.client.name}'s details.`;
+        }
+
+        handleListQuery({ kind }) {
+          if (kind === 'overdue') {
+            this.switchToTab('overdue');
+            const list = (clients || []).filter(c => c.status === 'active' && (new Date(c.dueDate) < new Date()) && (c.remainingBalance || 0) > 0);
+            return `Overdue clients: ${list.length}.`;
           }
-
-          return "📈 I can help with: Data export/backup, Current statistics, Storage info, or Data management features.";
+          if (kind === 'paidToday') {
+            const t = todayLocalDateStr();
+            const paidIds = new Set((Object.values(payments||{}).flat()).filter(p => p.date === t).map(p => p.clientId));
+            return `Paid today: ${paidIds.size}.`;
+          }
+          if (kind === 'notPaidToday') {
+            const t = todayLocalDateStr();
+            const paidIds = new Set((Object.values(payments||{}).flat()).filter(p => p.date === t).map(p => p.clientId));
+            const active = (clients||[]).filter(c => c.status==='active');
+            const eligible = active.filter(c => {
+              const s=new Date(c.startDate); const d=new Date(c.dueDate); const today=new Date();
+              const sd=new Date(s.getFullYear(),s.getMonth(),s.getDate()); const td=new Date(today.getFullYear(),today.getMonth(),today.getDate()); const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+              const ds = `${td.getFullYear()}-${String(td.getMonth()+1).padStart(2,'0')}-${String(td.getDate()).padStart(2,'0')}`;
+              return sd<=td && td<=dd && !isNonCollectionDay(ds) && !isClientAbsentOnDate(c.id, ds);
+            });
+            const notPaid = eligible.filter(c => !paidIds.has(c.id));
+            return `Not paid today: ${notPaid.length}.`;
+          }
+          return 'Okay.';
         }
 
-        isCalculationQuestion(msg) {
-          return msg.includes('calculate') || msg.includes('interest') || msg.includes('daily') ||
-                 msg.includes('balance') || msg.includes('amount');
-        }
+        // Tool: set form fields and call addPayment(type)
+        setFormAndRecordPayment(type, clientId, amount, dateStr) {
+          const map = {
+            notebook: { tab: 'notebook', sel: 'notebookClient', amt: 'paymentAmount', date: 'paymentDate', selectFn: 'selectNotebookClient' },
+            office: { tab: 'office', sel: 'officeClient', amt: 'officePaymentAmount', date: 'officePaymentDate', selectFn: 'selectOfficeClient' },
+            gcash: { tab: 'gcash', sel: 'gcashClient', amt: 'gcashPaymentAmount', date: 'gcashPaymentDate', selectFn: 'selectGCashClient' },
+            adv: { tab: 'adv', sel: 'advClient', amt: 'advPaymentAmount', date: 'advPaymentDate', selectFn: 'selectAdvClient' },
+            abono: { tab: 'abono', sel: 'abonoClient', amt: 'abonoPaymentAmount', date: 'abonoPaymentDate', selectFn: 'selectAbonoClient' }
+          };
+          const cfg = map[type];
+          if (!cfg) return false;
 
-        getCalculationResponse(msg) {
-          return "🧮 **Loan Calculations**:\n\n📐 **Daily Amount Formula**:\n(Loan Amount × (1 + Interest Rate)) ÷ Term Days\n\n💡 **Default Settings**:\n• Interest Rate: 20%\n• Term: 48 days\n\n💰 **Example**: ₱5,000 loan\n• Total with interest: ₱6,000\n• Daily payment: ₱125\n\nChange defaults in Settings!";
-        }
+          // Navigate
+          this.switchToTab(cfg.tab);
 
-        getGeneralHelpResponse(msg) {
-          // Try to find relevant knowledge
-          for (const [category, items] of Object.entries(this.knowledge)) {
-            for (const [key, value] of Object.entries(items)) {
-              if (msg.includes(key.toLowerCase())) {
-                return `💡 **${key.charAt(0).toUpperCase() + key.slice(1)}**:\n\n${value}`;
+          // Fill fields
+          try {
+            const sel = document.getElementById(cfg.sel);
+            if (!sel) return false;
+            sel.value = String(clientId);
+            const fn = (window[cfg.selectFn]);
+            if (typeof fn === 'function') fn();
+
+            const amt = document.getElementById(cfg.amt);
+            if (amt) amt.value = String(amount);
+
+            const dateEl = document.getElementById(cfg.date);
+            if (dateEl) {
+              // Some tabs restrict to today; if different, fallback with notification
+              const today = todayLocalDateStr();
+              if (dateEl.min === today && dateEl.max === today && dateStr !== today) {
+                dateEl.value = today;
+                showNotification("Only today's date is allowed here; using today.", 'error');
+              } else {
+                dateEl.value = dateStr;
               }
             }
-          }
 
-          return "🤔 I'm not sure about that specific question, but I can help with:\n\n🎯 **Main Features**:\n• Adding and managing clients\n• Recording different payment types\n• Tracking daily collections\n• Managing overdue accounts\n• Exporting data\n\n📱 **Navigation**: Dashboard, Daily Tracker, Summary, Overdue, Settings\n\nTry asking about any of these topics!";
-        }
-
-        // Helper functions
-        switchToTab(tabName) {
-          // Switch to the specified tab
-          if (typeof switchTab === 'function') {
-            switchTab(tabName);
-          }
-        }
-
-        getCurrentStats() {
-          try {
-            return {
-              totalClients: clients ? clients.length : 0,
-              activeLoans: clients ? clients.filter(c => c.status === 'active').length : 0,
-              totalLoaned: '₱' + (clients ? clients.reduce((sum, c) => sum + (c.loanAmount || 0), 0).toLocaleString() : '0'),
-              totalCollected: '₱' + (clients ? clients.reduce((sum, c) => sum + ((c.loanAmount || 0) - (c.remainingBalance || 0)), 0).toLocaleString() : '0'),
-              todayCollections: '₱0' // This would need to be calculated from today's payments
-            };
+            if (typeof addPayment === 'function') addPayment(type);
+            return true;
           } catch (e) {
-            return {
-              totalClients: 0,
-              activeLoans: 0,
-              totalLoaned: '₱0',
-              totalCollected: '₱0',
-              todayCollections: '₱0'
-            };
+            return false;
+          }
+        }
+
+        // Semantic search over knowledge docs
+        semanticAnswer(msg) {
+          const qTokens = this.tokenize(msg);
+          if (!qTokens.length) return null;
+          const qTf = new Map();
+          qTokens.forEach(t => qTf.set(t, (qTf.get(t)||0)+1));
+          const scoreDoc = (idx) => {
+            let score = 0;
+            for (const [t, qv] of qTf.entries()) {
+              const df = this.vocab.get(t) || 0;
+              if (!df) continue;
+              const idf = Math.log((this.N + 1) / df);
+              const dv = this.docTf[idx].get(t) || 0;
+              score += (qv * idf) * (dv * idf);
+            }
+            // Jaccard bonus
+            const docTokens = Array.from(this.docTf[idx].keys());
+            const inter = docTokens.filter(t => qTf.has(t)).length;
+            const union = new Set([...docTokens, ...qTf.keys()]).size;
+            score += inter / Math.max(1, union);
+            return score;
+          };
+          let bestIdx = 0, bestScore = 0;
+          for (let i=0;i<this.N;i++){ const s=scoreDoc(i); if (s>bestScore){ bestScore=s; bestIdx=i; } }
+          if (bestScore <= 0) return null;
+          const d = this.knowledgeDocs[bestIdx];
+          return `💡 ${d.title}: ${d.body}`;
+        }
+
+        // Helpers
+        switchToTab(tabName) { if (typeof switchTab === 'function') switchTab(tabName); }
+        shiftDateStr(delta) { const d = new Date(); d.setDate(d.getDate()+delta); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+        random(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+        extractClientNameLike(msg) {
+          // Try to pick any token sequence that matches client names
+          const names = (clients||[]).map(c => c.name);
+          if (!names.length) return null;
+          let bestName=null, bestScore=0;
+          names.forEach(n => {
+            const s = this.stringSimilarity(msg, n.toLowerCase());
+            if (s>bestScore){ bestScore=s; bestName=n; }
+          });
+          return bestScore>0.35 ? bestName : null;
+        }
+
+        bestMatchClient(fragment){
+          if (!clients || !clients.length) return null;
+          const q = (fragment||'').toLowerCase().trim();
+          let best=null, bestScore=0;
+          clients.forEach(c => {
+            const s = this.stringSimilarity(q, String(c.name||'').toLowerCase());
+            if (s>bestScore){ bestScore=s; best=c; }
+          });
+          if (!best) return null;
+          return { client: best, score: bestScore };
+        }
+
+        stringSimilarity(a,b){
+          if (!a || !b) return 0;
+          // Token-based Jaccard + character bigram overlap
+          const at = new Set(a.split(/[^a-z0-9]+/g).filter(Boolean));
+          const bt = new Set(b.split(/[^a-z0-9]+/g).filter(Boolean));
+          const inter = [...at].filter(x=>bt.has(x)).length;
+          const union = new Set([...at,...bt]).size || 1;
+          const j = inter/union;
+          const bigrams = s=>{ const arr=[]; for(let i=0;i<s.length-1;i++){ const ch=s.slice(i,i+2); if (/^[a-z0-9]{2}$/i.test(ch)) arr.push(ch);} return arr; };
+          const ab = bigrams(a), bb = bigrams(b);
+          const setA=new Set(ab), setB=new Set(bb);
+          const inter2=[...setA].filter(x=>setB.has(x)).length;
+          const union2=new Set([...setA,...setB]).size || 1;
+          return 0.6*j + 0.4*(inter2/union2);
+        }
+
+        getCurrentStats(){
+          try{
+            const totalClients = clients ? clients.length : 0;
+            const activeLoans = clients ? clients.filter(c=>c.status==='active').length : 0;
+            const totalLoaned = '₱' + (clients ? clients.reduce((s,c)=>s+(c.loanAmount||0),0).toLocaleString() : '0');
+            const totalCollected = '₱' + (clients ? clients.reduce((s,c)=>s+((c.totalAmount||0)-(c.remainingBalance||0)),0).toLocaleString() : '0');
+            const t=todayLocalDateStr();
+            const todaySum = (Object.values(payments||{}).flat()).filter(p=>p.date===t).reduce((s,p)=>s+(p.amount||0),0);
+            return { totalClients, activeLoans, totalLoaned, totalCollected, todayCollections: '₱'+todaySum.toLocaleString() };
+          }catch(e){
+            return { totalClients:0, activeLoans:0, totalLoaned:'₱0', totalCollected:'₱0', todayCollections:'₱0' };
           }
         }
       }
