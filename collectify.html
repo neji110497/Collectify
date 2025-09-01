@@ -4244,6 +4244,11 @@
 
         // Set up periodic checking for missed payments (every 30 minutes)
         setInterval(checkMissedPayments, 30 * 60 * 1000);
+
+        // Initialize volume slider visual
+        setTimeout(() => {
+          updateVolumeSliderVisual();
+        }, 100);
       });
 
       // Setup tab listeners
