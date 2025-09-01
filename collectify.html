@@ -3378,9 +3378,9 @@
                   <input type="hidden" id="holidayDate" />
                   <div id="holidayInlineCalendar" class="client-calendar" style="margin-top:10px;">
                     <div class="calendar-header">
-                      <button type="button" class="cal-nav" id="hcalPrev" aria-label="Previous month">‹</button>
+                      <button type="button" class="cal-nav" id="hcalPrev" aria-label="Previous month">&lt;</button>
                       <div class="calendar-title" id="hcalTitle">Month YYYY</div>
-                      <button type="button" class="cal-nav" id="hcalNext" aria-label="Next month">›</button>
+                      <button type="button" class="cal-nav" id="hcalNext" aria-label="Next month">&gt;</button>
                     </div>
                     <div class="calendar-grid" id="hcalGrid"></div>
                     <div class="calendar-legend" style="margin-top:10px;">
@@ -4959,8 +4959,10 @@
             ${client.collateral && (client.collateral.photosBase64?.[0] || client.collateral.photoBase64) ?
               `<img src="${(client.collateral.photosBase64 && client.collateral.photosBase64[0]) || client.collateral.photoBase64}" style="max-width: 200px; max-height: 150px; border-radius: var(--ios-border-radius); margin-top: 8px;" alt="Collateral Photo">` : ''
             }
-            <div style="margin-top: 15px;">
-              <button class="btn btn-primary" onclick="contactCoMaker('${client.id}')">Contact Co-maker</button>
+            <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+              <button class="btn btn-success" onclick="textClient(${client.id})">Text Client</button>
+              <button class="btn btn-primary" onclick="contactClient(${client.id})">Call Client</button>
+              <button class="btn btn-secondary" onclick="contactCoMaker(${client.id})">Contact Co-maker</button>
               <button class="btn btn-secondary" onclick="dismissCollateralNotification('${client.id}')">Dismiss</button>
             </div>
           </div>
@@ -8665,9 +8667,9 @@
               <h4 class="detail-row" style="color: var(--ios-blue); margin-bottom: 8px;">Payment Calendar</h4>
               <div class="client-calendar detail-row">
                 <div class="calendar-header">
-                  <button type="button" class="cal-nav" aria-label="Previous month" onclick="changeClientCalendarMonth(-1)">‹</button>
+                  <button type="button" class="cal-nav" aria-label="Previous month" onclick="changeClientCalendarMonth(-1)">&lt;</button>
                   <div class="calendar-title" id="clientCalendarTitle">-</div>
-                  <button type="button" class="cal-nav" aria-label="Next month" onclick="changeClientCalendarMonth(1)">›</button>
+                  <button type="button" class="cal-nav" aria-label="Next month" onclick="changeClientCalendarMonth(1)">&gt;</button>
                 </div>
                 <div class="calendar-grid" id="clientCalendarGrid"></div>
                 <div class="calendar-legend">
@@ -9289,11 +9291,11 @@
     <div id="datePickerSheet" class="ios-sheet" style="bottom:-60vh">
       <div class="sheet-header">
         <div class="month-nav">
-          <button type="button" class="month-btn" id="dpPrev" aria-label="Previous month">‹</button>
+          <button type="button" class="month-btn" id="dpPrev" aria-label="Previous month">&lt;</button>
         </div>
         <div class="sheet-title" id="dpTitle">Select date</div>
         <div class="month-nav">
-          <button type="button" class="month-btn" id="dpNext" aria-label="Next month">›</button>
+          <button type="button" class="month-btn" id="dpNext" aria-label="Next month">&gt;</button>
         </div>
       </div>
       <div class="sheet-list" style="padding:12px">
@@ -9344,11 +9346,11 @@
           sheet.innerHTML = `
             <div class="sheet-header">
               <div class="month-nav">
-                <button type="button" class="month-btn" id="dpPrev" aria-label="Previous month">‹</button>
+                <button type="button" class="month-btn" id="dpPrev" aria-label="Previous month">&lt;</button>
               </div>
               <div class="sheet-title" id="dpTitle">Select date</div>
               <div class="month-nav">
-                <button type="button" class="month-btn" id="dpNext" aria-label="Next month">›</button>
+                <button type="button" class="month-btn" id="dpNext" aria-label="Next month">&gt;</button>
               </div>
             </div>
             <div class="sheet-list" style="padding:12px">
