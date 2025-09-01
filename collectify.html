@@ -8964,7 +8964,7 @@
               .filter(p=>p.clientId==clientId && p.date===ds && p.type==='full')
               .reduce((s,p)=>s + (Number(p.amount)||0), 0);
             const amountsHtml = [
-              nbAmt>0 ? `<span class=\"cal-amt cal-notebook\">���${nbAmt.toFixed(0)}</span>` : '',
+              nbAmt>0 ? `<span class=\"cal-amt cal-notebook\">₱${nbAmt.toFixed(0)}</span>` : '',
               ofAmt>0 ? `<span class=\"cal-amt cal-office\">₱${ofAmt.toFixed(0)}</span>` : '',
               gcAmt>0 ? `<span class=\"cal-amt cal-gcash\">₱${gcAmt.toFixed(0)}</span>` : '',
               adAmt>0 ? `<span class=\"cal-amt cal-adv\" title=\"Advance\">₱${adAmt.toFixed(0)}</span>` : '',
