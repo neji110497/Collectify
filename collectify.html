@@ -11712,14 +11712,38 @@ self.addEventListener('fetch', (event) => {
           const statusEl = document.getElementById('aiEngineStatus');
           const progressEl = document.getElementById('aiDownloadProgress');
           if (webllmReady) { aiMode = 'llm'; updateEngineUI(); return; }
-          statusEl.textContent = 'Engine: LLM (preparing)';
-          progressEl.style.display = 'block';
-          progressEl.textContent = 'Initializing...';
+          if (statusEl) statusEl.textContent = 'Engine: LLM (preparing)';
+          if (progressEl) { progressEl.style.display = 'block'; progressEl.textContent = 'Initializing...'; }
 
           const mod = await import('https://esm.run/@mlc-ai/web-llm');
 
+          // Ensure a valid appConfig/model list is present to avoid "Cannot find model record" errors
+          let appConfig = undefined;
+          try {
+            const cfg = typeof mod.prebuiltAppConfig === 'function' ? await mod.prebuiltAppConfig() : (mod.prebuiltAppConfig || undefined);
+            if (cfg && (cfg.model_list || cfg.modelList)) appConfig = cfg;
+          } catch (_) {}
+
+          // Pick a model that actually exists in the config if needed
+          let chosenModel = webllmModelId;
+          try {
+            const list = (appConfig && (appConfig.model_list || appConfig.modelList)) || [];
+            const norm = (m) => (m.model_id || m.modelId || '').trim();
+            const has = Array.isArray(list) && list.some((m) => norm(m) === chosenModel);
+            if (!has && Array.isArray(list) && list.length) {
+              const preferred = [
+                'Phi-3-mini-4k-instruct-q4f32_1-MLC',
+                'Llama-3.2-1B-Instruct-q4f32_1-MLC',
+                'Qwen2-0.5B-Instruct-q4f32_1-MLC'
+              ];
+              const found = preferred.find(id => list.some(m => norm(m) === id)) || norm(list[0]);
+              if (found) chosenModel = found;
+            }
+          } catch (_) {}
+
           const initOpts = {
-            model: webllmModelId,
+            model: chosenModel,
+            appConfig,
             initProgressCallback: (p) => {
               try {
                 if (!progressEl) return;
@@ -11732,19 +11756,17 @@ self.addEventListener('fetch', (event) => {
           // Prefer worker when cross-origin isolated; otherwise fall back to main thread
           const preferWorker = !!llmEnv.coi;
           let engine = null;
-          let workerError = null;
-          if (preferWorker) {
+          if (preferWorker && typeof mod.CreateWebWorkerMLCEngine === 'function') {
             try {
               engine = await mod.CreateWebWorkerMLCEngine(new URL('https://esm.run/@mlc-ai/web-llm/dist/worker.js'), initOpts);
-              statusEl.textContent = 'Engine: LLM (worker)';
-            } catch (err) {
-              workerError = err;
+              if (statusEl) statusEl.textContent = 'Engine: LLM (worker)';
+            } catch (_) {
+              // ignore and fall through
             }
           }
           if (!engine) {
-            // Fallback: run on main thread (works on many browsers even without COI)
             engine = await mod.CreateMLCEngine(initOpts);
-            statusEl.textContent = 'Engine: LLM (main thread)';
+            if (statusEl) statusEl.textContent = 'Engine: LLM (main thread)';
           }
 
           webllmEngine = engine;
@@ -11754,6 +11776,11 @@ self.addEventListener('fetch', (event) => {
         } catch (e) {
           aiMode = 'rules';
           updateEngineUI();
+          const progressEl = document.getElementById('aiDownloadProgress');
+          if (progressEl) {
+            progressEl.style.display = 'block';
+            progressEl.textContent = (e && e.message) ? String(e.message) : 'LLM is unavailable on this device/browser.';
+          }
         }
       }
 
