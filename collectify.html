@@ -9342,6 +9342,15 @@
         );
       }
 
+      function updateVolumeSliderVisual() {
+        const volumeSlider = document.getElementById('notificationVolume');
+        if (!volumeSlider) return;
+
+        const raw = parseFloat(volumeSlider.value);
+        const percentage = (raw / 100) * 100;
+        volumeSlider.style.setProperty('--slider-progress', percentage + '%');
+      }
+
       function updateNotificationVolume() {
         if (!notificationSystem) return;
 
@@ -9351,8 +9360,7 @@
         notificationSystem.updateSettings({ volume });
 
         // Update visual progress of the slider
-        const percentage = (raw / 100) * 100;
-        volumeSlider.style.setProperty('--slider-progress', percentage + '%');
+        updateVolumeSliderVisual();
       }
 
       function updateNotificationSound() {
