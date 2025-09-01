@@ -7925,13 +7925,19 @@
 
         if (!absentList) return;
 
-        if (absences.length === 0) {
+        // Apply history filter for absences
+        const mode = (historyFilters.absent || 'today');
+        const tdy = todayLocalDateStr();
+        const filtered = mode === 'today' ? (absences||[]).filter(a => a.date === tdy) : (absences||[]).filter(a => a.date <= tdy);
+        updateFilterButtonsUI('absent');
+
+        if (filtered.length === 0) {
           absentList.innerHTML =
             '<div class="no-data">No absences recorded yet</div>';
           return;
         }
 
-        absentList.innerHTML = absences
+        absentList.innerHTML = filtered
           .sort((a, b) => new Date(b.date) - new Date(a.date))
           .map(
             (absence) => `
