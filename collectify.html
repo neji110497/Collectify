@@ -5407,6 +5407,42 @@
         return `payment due today`;
       }
 
+      // Calculate missed payment days for a client
+      function calculateMissedPaymentDays(client) {
+        if (client.status !== 'active') return 0;
+
+        const today = new Date();
+        const todayStr = today.toISOString().split("T")[0];
+
+        // Get all payments for this client across all payment types
+        const allPayments = Object.values(payments).flat()
+          .filter(p => p.clientId === client.id);
+        const paidDates = new Set(allPayments.map(p => p.date));
+
+        const clientStart = new Date(client.startDate);
+        const clientStartOnly = new Date(clientStart.getFullYear(), clientStart.getMonth(), clientStart.getDate());
+
+        // Do not evaluate clients whose start date is in the future
+        if (today < clientStartOnly) return 0;
+
+        let missedDays = 0;
+        const cursor = new Date(clientStartOnly);
+
+        // Iterate from start date to yesterday (not including today)
+        while (cursor < today) {
+          const ds = cursor.toISOString().split('T')[0];
+          // Check if this was an eligible collection day
+          if (!isNonCollectionDay(ds) && !isClientAbsentOnDate(client.id, ds)) {
+            if (!paidDates.has(ds)) {
+              missedDays++;
+            }
+          }
+          cursor.setDate(cursor.getDate() + 1);
+        }
+
+        return missedDays;
+      }
+
       // Update client list
       function updateClientList() {
         const clientList = document.getElementById("clientList");
@@ -5858,7 +5894,7 @@
         if (loanAmount % 1000 !== 0) {
           const el = document.getElementById("editLoanAmount");
           if (el) el.classList.add("input-error");
-          showNotification("Loan amount must be a multiple of ₱1,000 (e.g., 1000, 2000, ...)", "error");
+          showNotification("Loan amount must be a multiple of ���1,000 (e.g., 1000, 2000, ...)", "error");
           setTimeout(()=>{ if (el) el.classList.remove("input-error"); }, 2000);
           return;
         }
