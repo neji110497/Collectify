@@ -10433,9 +10433,9 @@
           // Force client #1 to be overdue with remaining balance
           if (i === 1) {
             start = formatDateLocal(addDaysLocal(today, -30));
-            // Apply validation to overdue client as well
-            if (!isValidReleaseDay(start)) {
-              start = getNextValidReleaseDay(start);
+            // Apply validation to overdue client as well (day after release day)
+            if (!isValidStartDay(start)) {
+              start = getNextValidStartDate(start);
             }
             dueDate = formatDateLocal(addDaysLocal(today, -5));
           }
