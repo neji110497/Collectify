@@ -11157,67 +11157,10 @@ self.addEventListener('fetch', (event) => {
       });
     </script>
 
-    <!-- AI Chatbot Button -->
-    <button id="aiChatButton" onclick="toggleAIChat()" aria-label="AI Assistant">
-      <div class="ai-pulse"></div>
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" fill="currentColor"/>
-        <path d="M19 15L19.91 17.26L22 18L19.91 18.74L19 21L18.09 18.74L16 18L18.09 17.26L19 15Z" fill="currentColor"/>
-        <path d="M5 6L5.91 8.26L8 9L5.91 9.74L5 12L4.09 9.74L2 9L4.09 8.26L5 6Z" fill="currentColor"/>
-      </svg>
-    </button>
-
-    <!-- AI Chatbot Modal -->
-    <div id="aiChatModal" class="ai-chat-modal" onclick="closeAIChatOnOverlay(event)">
-      <div class="ai-chat-content">
-        <div class="ai-chat-header">
-          <div>
-            <h3>🤖 Collectify AI Assistant</h3>
-            <div class="ai-status">Ready to help with your lending app</div>
-            <div class="ai-status" id="aiEngineStatus">Engine: Rules (offline)</div>
-            <div class="ai-engine-actions" style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
-              <button class="ai-quick-action" id="enableLLMButton" onclick="enableLLM()">Enable LLM (download)</button>
-              <button class="ai-quick-action" id="switchToRulesButton" onclick="switchAIMode('rules')" style="display:none;">Use Rules</button>
-            </div>
-            <div class="ai-status" id="aiDownloadProgress" style="display:none;"></div>
-          </div>
-          <button class="ai-chat-close" onclick="closeAIChat()" aria-label="Close chat">✕</button>
-        </div>
-
-        <div class="ai-chat-messages" id="aiChatMessages">
-          <div class="ai-message assistant">
-            👋 Hi! I'm Collectify AI (offline). I understand natural language and keywords. I can navigate tabs, find clients, record payments, show overdue/paid, explain any feature, and summarize stats.
-            <br><br>
-            Try: “record 200 for Juan via GCash today”, “show overdue”, “open daily tracker”, “view Ana’s details”.
-          </div>
-          <div class="ai-quick-actions">
-            <button class="ai-quick-action" onclick="sendQuickMessage('Record 200 for Juan via GCash today')">Record ₱200 GCash</button>
-            <button class="ai-quick-action" onclick="sendQuickMessage('Show overdue clients')">Show Overdue</button>
-            <button class="ai-quick-action" onclick="sendQuickMessage('Open daily tracker')">Open Tracker</button>
-            <button class="ai-quick-action" onclick="sendQuickMessage('How do I export data?')">Export Data</button>
-          </div>
-        </div>
-
-        <div class="ai-chat-input-area">
-          <textarea
-            id="aiChatInput"
-            class="ai-chat-input"
-            placeholder="Ask me anything about Collectify..."
-            rows="1"
-            onkeydown="handleChatInputKeydown(event)"
-            oninput="autoResizeChatInput()"
-          ></textarea>
-          <button id="aiChatSend" class="ai-chat-send" onclick="sendAIMessage()" aria-label="Send message">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
 
     <script>
-      // AI Chatbot Implementation
+      // AI removed
+      if (false) {
       class CollectifyAI {
         constructor() {
           this.isOpen = false;
@@ -11854,6 +11797,7 @@ self.addEventListener('fetch', (event) => {
           }
         });
       });
+      }
     </script>
   </body>
 </html>
