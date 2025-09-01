@@ -3625,6 +3625,10 @@
             <div id="abonoPaymentHistory">
               <div style="display:flex; justify-content: space-between; align-items:center; gap:8px; flex-wrap:wrap;">
                 <h3>Abono History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="abonoFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('abono','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="abonoFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('abono','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button class="btn btn-danger" onclick="confirmClearPaymentHistory('abono')">Clear All</button>
               </div>
               <div id="abonoPaymentList"></div>
