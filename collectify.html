@@ -5541,30 +5541,33 @@
             <div class="client-item" data-client-id="${client.id}">
               <div class="client-header">
                 <div class="client-info">
-                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                    <h4 style="margin: 0; font-size: 16px;">${client.name}</h4>
-                    <div style="display: flex; gap: 4px; align-items: center;">
-                      ${(() => {
-                        let indicators = [];
+                  <!-- Client name row -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <h4 style="margin: 0; font-size: 16px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${client.name}</h4>
+                    ${statusBadge}
+                  </div>
 
-                        // Add missed payment badge for active clients
-                        if (client.status === 'active') {
-                          const missedDays = calculateMissedPaymentDays(client);
-                          if (missedDays > 0) {
-                            indicators.push(`<span class="status-badge status-red" style="font-size: 8px; padding: 2px 4px; background: var(--ios-red); color: white;">Missed ${missedDays}</span>`);
-                          }
-                        }
+                  <!-- Badges row -->
+                  <div style="display: flex; gap: 3px; flex-wrap: wrap; margin-bottom: 4px; min-height: 16px;">
+                    ${(() => {
+                      let indicators = [];
 
-                        if (client.coMaker && (client.coMaker.name || client.coMaker.contactNumber)) {
-                          indicators.push('<span class="status-badge status-office" style="font-size: 8px; padding: 2px 4px;">Co-maker</span>');
+                      // Add missed payment badge for active clients
+                      if (client.status === 'active') {
+                        const missedDays = calculateMissedPaymentDays(client);
+                        if (missedDays > 0) {
+                          indicators.push(`<span class="status-badge status-red" style="font-size: 7px; padding: 1px 3px; background: var(--ios-red); color: white; line-height: 1;">M${missedDays}</span>`);
                         }
-                        if (client.collateral && (client.collateral.description || client.collateral.photoBase64 || (client.collateral.photosBase64 && client.collateral.photosBase64.length))) {
-                          indicators.push('<span class="status-badge status-purple" style="font-size: 8px; padding: 2px 4px;">Collateral</span>');
-                        }
-                        return indicators.join(' ');
-                      })()}
-                      ${statusBadge}
-                    </div>
+                      }
+
+                      if (client.coMaker && (client.coMaker.name || client.coMaker.contactNumber)) {
+                        indicators.push('<span class="status-badge status-office" style="font-size: 7px; padding: 1px 3px; line-height: 1;">Co-M</span>');
+                      }
+                      if (client.collateral && (client.collateral.description || client.collateral.photoBase64 || (client.collateral.photosBase64 && client.collateral.photosBase64.length))) {
+                        indicators.push('<span class="status-badge status-purple" style="font-size: 7px; padding: 1px 3px; line-height: 1;">Coll</span>');
+                      }
+                      return indicators.join(' ');
+                    })()}
                   </div>
 
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; margin-bottom: 8px;">
