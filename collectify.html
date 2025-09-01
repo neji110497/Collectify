@@ -8134,7 +8134,7 @@
             if (diff > 0.01) {
               statusBadge =
                 '<span class="status-badge status-overpay">Overpayment</span>';
-              extraLine = `<p>Over by ���${Math.abs(diff).toFixed(2)}</p>`;
+              extraLine = `<p>Over by �����${Math.abs(diff).toFixed(2)}</p>`;
             } else if (diff < -0.01) {
               statusBadge =
                 '<span class="status-badge status-underpaid">Underpaid</span>';
@@ -9657,7 +9657,7 @@
 
           // Set volume
           gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(this.settings.volume * 0.3, this.audioContext.currentTime + 0.05);
+          gainNode.gain.linearRampToValueAtTime(this.settings.volume * 0.8, this.audioContext.currentTime + 0.05);
 
           switch (type) {
             case 'gentle':
@@ -9684,7 +9684,7 @@
                 gain2.connect(this.audioContext.destination);
                 osc2.frequency.setValueAtTime(800, this.audioContext.currentTime);
                 gain2.gain.setValueAtTime(0, this.audioContext.currentTime);
-                gain2.gain.linearRampToValueAtTime(this.settings.volume * 0.3, this.audioContext.currentTime + 0.05);
+                gain2.gain.linearRampToValueAtTime(this.settings.volume * 0.8, this.audioContext.currentTime + 0.05);
                 gain2.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.2);
                 osc2.start(this.audioContext.currentTime);
                 osc2.stop(this.audioContext.currentTime + 0.2);
@@ -9702,7 +9702,7 @@
                   gain.connect(this.audioContext.destination);
                   osc.frequency.setValueAtTime(freq, this.audioContext.currentTime);
                   gain.gain.setValueAtTime(0, this.audioContext.currentTime);
-                  gain.gain.linearRampToValueAtTime(this.settings.volume * 0.2, this.audioContext.currentTime + 0.05);
+                  gain.gain.linearRampToValueAtTime(this.settings.volume * 0.6, this.audioContext.currentTime + 0.05);
                   gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.6);
                   osc.start(this.audioContext.currentTime);
                   osc.stop(this.audioContext.currentTime + 0.6);
