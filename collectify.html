@@ -2971,6 +2971,10 @@
                 "
               >
                 <h3>Notebook Payment History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="notebookFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('notebook','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="notebookFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('notebook','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button
                   class="btn btn-danger"
                   onclick="confirmClearPaymentHistory('notebook')"
@@ -8230,7 +8234,7 @@
             let extraLine = "";
             if (entry.advForFuture && entry.advForFuture > 0) {
               const lines = entry.advDetails
-                .map((d) => `Advance for ${parseLocalDate(d.forDate).toLocaleDateString()}: ₱${(d.amount).toFixed(2)} (included in Actual Collection ��� remember to separate)`)
+                .map((d) => `Advance for ${parseLocalDate(d.forDate).toLocaleDateString()}: ₱${(d.amount).toFixed(2)} (included in Actual Collection — remember to separate)`)
                 .join("<br>");
               extraLine += `<p>${lines}</p>`;
             }
