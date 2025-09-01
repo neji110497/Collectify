@@ -1850,6 +1850,9 @@
         animation: slideInFromTop 0.3s var(--ios-easing);
       }
 
+      /* Shake animation utility for modals and dialogs */
+      .shake-anim { animation: shake 0.45s var(--ios-easing); }
+
       /* Dark mode improvements for better contrast */
       body.dark .tracker-client-item {
         background: var(--ios-secondary-system-background);
@@ -3266,10 +3269,10 @@
                   <input
                     type="range"
                     id="notificationVolume"
-                    min="0.1"
-                    max="1"
-                    step="0.1"
-                    value="0.7"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="70"
                     onchange="updateNotificationVolume()"
                   />
                 </div>
@@ -6062,6 +6065,15 @@
         currentEditingClient = clientId;
         document.getElementById("deleteClientName").textContent = client.name;
         document.getElementById("deleteConfirmModal").classList.add("active");
+        try {
+          const c = document.querySelector('#deleteConfirmModal .modal-content');
+          if (c) {
+            c.classList.remove('shake-anim');
+            void c.offsetWidth;
+            c.classList.add('shake-anim');
+            c.addEventListener('animationend', () => c.classList.remove('shake-anim'), { once: true });
+          }
+        } catch (e) {}
       }
 
       // Confirm delete client
@@ -7072,6 +7084,13 @@
         });
 
         modal.classList.add("active");
+        const content = modal.querySelector('.ios-confirm-content');
+        if (content) {
+          content.classList.remove('shake-anim');
+          void content.offsetWidth;
+          content.classList.add('shake-anim');
+          content.addEventListener('animationend', () => content.classList.remove('shake-anim'), { once: true });
+        }
       }
 
       // Clear form fields for payment tabs
@@ -8823,7 +8842,7 @@
               .filter(p=>p.clientId==clientId && p.date===ds && p.type==='full')
               .reduce((s,p)=>s + (Number(p.amount)||0), 0);
             const amountsHtml = [
-              nbAmt>0 ? `<span class=\"cal-amt cal-notebook\">₱${nbAmt.toFixed(0)}</span>` : '',
+              nbAmt>0 ? `<span class=\"cal-amt cal-notebook\">���${nbAmt.toFixed(0)}</span>` : '',
               ofAmt>0 ? `<span class=\"cal-amt cal-office\">₱${ofAmt.toFixed(0)}</span>` : '',
               gcAmt>0 ? `<span class=\"cal-amt cal-gcash\">₱${gcAmt.toFixed(0)}</span>` : '',
               adAmt>0 ? `<span class=\"cal-amt cal-adv\" title=\"Advance\">₱${adAmt.toFixed(0)}</span>` : '',
@@ -8952,7 +8971,7 @@
 
           const volumeInput = document.getElementById('notificationVolume');
           if (volumeInput) {
-            volumeInput.value = settings.volume;
+            volumeInput.value = Math.round((settings.volume || 0) * 100);
           }
 
           const soundSelect = document.getElementById('notificationSound');
@@ -9219,7 +9238,8 @@
       function updateNotificationVolume() {
         if (!notificationSystem) return;
 
-        const volume = parseFloat(document.getElementById('notificationVolume').value);
+        const raw = parseFloat(document.getElementById('notificationVolume').value);
+        const volume = Math.max(0, Math.min(1, (raw > 1 ? raw / 100 : raw)));
         notificationSystem.updateSettings({ volume });
       }
 
