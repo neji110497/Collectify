@@ -10531,7 +10531,7 @@ self.addEventListener('fetch', (event) => {
         const paidCt = (clients||[]).filter(c=>c.status==='paid').length;
         showNotification(`Demo mode enabled: 10 sample clients loaded — Fully paid: ${paidCt}`, 'success');
       }
-      function endDemoMode(){
+      async function endDemoMode(){
         if (!demo.active || !demo.backup) return;
         const b = demo.backup; demo.active = false; demo.backup = null;
         clients = b.clients; payments = b.payments; absences = b.absences; defaultSettings = b.defaultSettings; isDarkMode = b.isDarkMode; currentActiveTab = b.currentActiveTab;
@@ -10540,6 +10540,8 @@ self.addEventListener('fetch', (event) => {
         updateAbsenceHistory(); updateSettingsInfo();
         const btn = document.getElementById('demoModeBtn'); if (btn && btn.querySelector) { const s = btn.querySelector('span'); if (s) s.textContent = 'Demo mode'; }
         showNotification('Demo mode disabled', 'success');
+        try { await saveData(); } catch (e) {}
+        setTimeout(function(){ location.reload(); }, 100);
       }
       function toggleDemoMode(){ if (!demo.active) startDemoMode(); else endDemoMode(); }
 
