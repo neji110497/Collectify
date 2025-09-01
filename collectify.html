@@ -1850,6 +1850,9 @@
         animation: slideInFromTop 0.3s var(--ios-easing);
       }
 
+      /* Shake animation utility for modals and dialogs */
+      .shake-anim { animation: shake 0.45s var(--ios-easing); }
+
       /* Dark mode improvements for better contrast */
       body.dark .tracker-client-item {
         background: var(--ios-secondary-system-background);
@@ -6062,6 +6065,15 @@
         currentEditingClient = clientId;
         document.getElementById("deleteClientName").textContent = client.name;
         document.getElementById("deleteConfirmModal").classList.add("active");
+        try {
+          const c = document.querySelector('#deleteConfirmModal .modal-content');
+          if (c) {
+            c.classList.remove('shake-anim');
+            void c.offsetWidth;
+            c.classList.add('shake-anim');
+            c.addEventListener('animationend', () => c.classList.remove('shake-anim'), { once: true });
+          }
+        } catch (e) {}
       }
 
       // Confirm delete client
@@ -7072,6 +7084,13 @@
         });
 
         modal.classList.add("active");
+        const content = modal.querySelector('.ios-confirm-content');
+        if (content) {
+          content.classList.remove('shake-anim');
+          void content.offsetWidth;
+          content.classList.add('shake-anim');
+          content.addEventListener('animationend', () => content.classList.remove('shake-anim'), { once: true });
+        }
       }
 
       // Clear form fields for payment tabs
