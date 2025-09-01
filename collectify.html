@@ -366,7 +366,7 @@
         top: 0;
         left: 0;
         height: 100%;
-        width: min(320px, 85vw);
+        width: min(280px, 75vw);
         background: var(--ios-grouped-background);
         z-index: 1201;
         transform: translateX(-100%);
@@ -400,10 +400,10 @@
       .sidebar .tab {
         width: 100%;
         text-align: left;
-        padding: 14px 20px;
+        padding: 14px 16px;
         border: 0;
         background: transparent;
-        font-size: 16px;
+        font-size: 15px;
         color: var(--ios-label);
         display: flex;
         align-items: center;
@@ -1356,6 +1356,75 @@
         transform: rotate(90deg);
       }
 
+      /* Modal Tab Styles */
+      .modal-tabs {
+        display: flex;
+        background: var(--ios-gray6);
+        border-radius: var(--ios-border-radius);
+        padding: 4px;
+        margin-bottom: 20px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .modal-tab {
+        flex: 1;
+        padding: 10px 16px;
+        border-radius: var(--ios-border-radius);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--ios-secondary-label);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s var(--ios-easing);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-align: center;
+      }
+
+      .modal-tab.active {
+        background: var(--ios-system-background);
+        color: var(--ios-blue);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .modal-tab:hover:not(.active) {
+        background: rgba(0, 122, 255, 0.05);
+        color: var(--ios-blue);
+      }
+
+      .modal-tab .icon-inline {
+        width: 16px;
+        height: 16px;
+        margin-right: 0;
+      }
+
+      .modal-tab-content {
+        position: relative;
+        min-height: 300px;
+      }
+
+      .modal-tab-panel {
+        display: none;
+        animation: fadeIn 0.3s var(--ios-easing);
+      }
+
+      .modal-tab-panel.active {
+        display: block;
+      }
+
+      /* Dark mode support for modal tabs */
+      body.dark .modal-tabs {
+        background: var(--ios-tertiary-system-background);
+      }
+
+      body.dark .modal-tab.active {
+        background: var(--ios-secondary-system-background);
+        color: var(--ios-blue);
+      }
+
       /* Enhanced Dark Mode Support */
       .dark body,
       body.dark {
@@ -2199,13 +2268,41 @@
         to { opacity: 1; transform: scale(1); }
       }
       /* Credits footer */
-      .credits-container { padding: 12px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: 100%; text-align: center; color: var(--ios-secondary-label); font-size: 12px; margin: 0 auto; }
-      .credits-row { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
+      .credits-container {
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        text-align: center;
+        color: var(--ios-secondary-label);
+        font-size: 12px;
+        margin: 0 auto;
+        list-style: none;
+        list-style-type: none;
+      }
+      .credits-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        list-style: none;
+        list-style-type: none;
+      }
       .credits-text { opacity: 0.9; }
       .credits-name { font-weight: 700; color: var(--ios-label); }
       .credits-link { color: var(--ios-blue); text-decoration: none; font-weight: 600; }
       .credits-year { opacity: 0.8; }
       .credits-separator { opacity: 0.45; }
+
+      /* Ensure no bullet points anywhere in credits */
+      .credits-container *, .credits-row * {
+        list-style: none !important;
+        list-style-type: none !important;
+      }
 
       /* AI Chatbot Styles */
       #aiChatButton {
@@ -4125,7 +4222,34 @@
           </button>
         </div>
         <div class="modal-body">
-          <div id="viewClientContent"></div>
+          <!-- Modal Tabs -->
+          <div class="modal-tabs">
+            <div class="modal-tab active" data-modal-tab="client" onclick="switchModalTab('client')">
+              <svg class="icon-inline" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" fill="none"></path>
+                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="none"></circle>
+              </svg>
+              Client
+            </div>
+            <div class="modal-tab" data-modal-tab="comaker" onclick="switchModalTab('comaker')">
+              <svg class="icon-inline" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" fill="none"></path>
+                <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="none"></circle>
+                <path d="M20 8v6M23 11l-3 3-3-3" stroke="currentColor" stroke-width="2" fill="none"></path>
+              </svg>
+              Co-maker
+            </div>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="modal-tab-content">
+            <div id="clientTabContent" class="modal-tab-panel active">
+              <div id="viewClientContent"></div>
+            </div>
+            <div id="comakerTabContent" class="modal-tab-panel">
+              <div id="viewCoMakerContent"></div>
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-primary" onclick="contactClient(calendarViewState.clientId || 0)">Contact Client</button>
@@ -5239,7 +5363,7 @@
               reader.readAsDataURL(input.files[0]);
             }
           } else {
-            console.log('⚠️ No files selected. Please select files first.');
+            console.log('���️ No files selected. Please select files first.');
             showNotification('Please select files first, then run the test', 'error');
           }
 
@@ -6320,7 +6444,7 @@
         if (loanAmount % 1000 !== 0) {
           const el = document.getElementById("editLoanAmount");
           if (el) el.classList.add("input-error");
-          showNotification("Loan amount must be a multiple of ₱1,000 (e.g., 1000, 2000, ...)", "error");
+          showNotification("Loan amount must be a multiple of ���1,000 (e.g., 1000, 2000, ...)", "error");
           setTimeout(()=>{ if (el) el.classList.remove("input-error"); }, 2000);
           return;
         }
@@ -7300,7 +7424,7 @@
                 <div>
                   <h4>${payment.clientName}</h4>
                   <p>₱${payment.amount.toFixed(2)} • ${parseLocalDate(payment.date).toLocaleDateString()}</p>
-                  ${payment.paymentType === 'abono' && payment.lenderName ? `<p>Lender: ${payment.lenderName}${(payment.repaid||0)>0 ? ` • Repaid: ₱${(payment.repaid||0).toFixed(2)} ��� Outstanding: ₱${Math.max(0, payment.amount - (payment.repaid||0)).toFixed(2)}` : ''}</p>` : ''}
+                  ${payment.paymentType === 'abono' && payment.lenderName ? `<p>Lender: ${payment.lenderName}${(payment.repaid||0)>0 ? ` • Repaid: ₱${(payment.repaid||0).toFixed(2)} • Outstanding: ₱${Math.max(0, payment.amount - (payment.repaid||0)).toFixed(2)}` : ''}</p>` : ''}
                   ${payment.paymentType === 'adv' && payment.initialAmount && payment.initialAmount > payment.amount ? `<p>Borrowed via Abono: ₱${(payment.initialAmount - payment.amount).toFixed(2)}${formatAdvBorrowers(payment)} • Remaining: ₱${payment.amount.toFixed(2)} of ₱${payment.initialAmount.toFixed(2)}</p>` : ''}
                   <p><span class="status-badge status-active">${payment.type}</span></p>
                 </div>
@@ -7921,9 +8045,9 @@
         document.getElementById("paidToday").textContent = paidClients.length;
         document.getElementById("notPaidToday").textContent =
           notPaidClients.length;
-        const expEl = document.getElementById("totalExpectedToday"); if (expEl) expEl.innerHTML = "&#8369;" + totalExpected.toFixed(2);
-        const actEl = document.getElementById("actualCollectedToday"); if (actEl) actEl.innerHTML = "&#8369;" + actualCollected.toFixed(2);
-        const op = document.getElementById("overduePaidToday"); if (op) op.innerHTML = "&#8369;" + overduePaidTotal.toFixed(2);
+        const expEl = document.getElementById("totalExpectedToday"); if (expEl) expEl.textContent = "₱" + totalExpected.toFixed(2);
+        const actEl = document.getElementById("actualCollectedToday"); if (actEl) actEl.textContent = "₱" + actualCollected.toFixed(2);
+        const op = document.getElementById("overduePaidToday"); if (op) op.textContent = "₱" + overduePaidTotal.toFixed(2);
 
         // Update lists
         updateTrackerList("paidClientsList", paidClients, true);
@@ -9070,37 +9194,47 @@
         if (savedDarkMode) isDarkMode = JSON.parse(savedDarkMode);
       }
 
+      // Modal tab switching function
+      function switchModalTab(tabName) {
+        // Remove active class from all modal tabs
+        document.querySelectorAll('.modal-tab').forEach(tab => {
+          tab.classList.remove('active');
+        });
+
+        // Hide all modal tab panels
+        document.querySelectorAll('.modal-tab-panel').forEach(panel => {
+          panel.classList.remove('active');
+        });
+
+        // Add active class to clicked tab
+        document.querySelector(`.modal-tab[data-modal-tab="${tabName}"]`).classList.add('active');
+
+        // Show corresponding tab panel
+        if (tabName === 'client') {
+          document.getElementById('clientTabContent').classList.add('active');
+        } else if (tabName === 'comaker') {
+          document.getElementById('comakerTabContent').classList.add('active');
+        }
+      }
+
       // View client details
       function openViewClient(clientId, originEl) {
         const client = clients.find((c) => c.id === clientId);
         if (!client) return;
 
-        // Build co-maker information section
-        let coMakerSection = '';
-        if (client.coMaker && (client.coMaker.name || client.coMaker.contactNumber || client.coMaker.address)) {
-          coMakerSection = `
-            <div class="detail-section">
-              <hr style="margin: 15px 0; border: 0.5px solid var(--ios-opaque-separator);">
-              <h4 class="detail-row" style="color: var(--ios-blue); margin-bottom: 10px;">Co-maker Information</h4>
-              <div class="detail-row"><strong>Name:</strong> ${client.coMaker.name || 'Not provided'}</div>
-              <div class="detail-row"><strong>Contact:</strong> ${formatPhone(client.coMaker.contactNumber || 'Not provided')}</div>
-              <div class="detail-row"><strong>Address:</strong> ${client.coMaker.address || 'Not provided'}</div>
-            </div>`;
-        }
-
-        // Build collateral information section
+        // Build collateral section for client tab
         let collateralSection = '';
         if (client.collateral && (client.collateral.description || client.collateral.photoBase64 || (client.collateral.photosBase64 && client.collateral.photosBase64.length))) {
           collateralSection = `
             <div class="detail-section">
               <hr style="margin: 15px 0; border: 0.5px solid var(--ios-opaque-separator);">
               <h4 class="detail-row" style="color: var(--ios-blue); margin-bottom: 10px;">Collateral Information</h4>
-              <div class="detail-row"><strong>Description:</strong> ${client.collateral.description || 'Not provided'}</div>
-            </div>`;
+              <div class="detail-row"><strong>Description:</strong> ${client.collateral.description || 'Not provided'}</div>`;
 
           const collImgs = (client.collateral.photosBase64 && client.collateral.photosBase64.length)
             ? client.collateral.photosBase64
             : (client.collateral.photoBase64 ? [client.collateral.photoBase64] : []);
+
           if (collImgs.length) {
             collateralSection += `
               <div class="detail-row" style="margin-top: 10px;">
@@ -9115,9 +9249,11 @@
                 <br><small style="color: var(--ios-secondary-label);">Tap image to enlarge</small>
               </div>`;
           }
+          collateralSection += `</div>`;
         }
 
-        const html = `
+        // Client Tab Content
+        const clientTabHtml = `
           <div class="client-detail-stagger" style="display:grid; gap:8px;">
             <h4 class="detail-row" style="color: var(--ios-blue); margin-bottom: 10px;">Basic Information</h4>
             <div class="detail-row"><strong>Name:</strong> ${client.name}</div>
@@ -9128,6 +9264,8 @@
             <div class="detail-row"><strong>Daily Amount:</strong> ₱${client.dailyAmount.toFixed(2)}</div>
             <div class="detail-row"><strong>Due Date:</strong> ${parseLocalDate(client.dueDate).toLocaleDateString()} (${formatDaysLeft(client)})</div>
             <div class="detail-row"><strong>Status:</strong> ${client.remainingBalance <= 0 ? "Paid" : "Active"}</div>
+
+            ${collateralSection}
 
             <div class="detail-section">
               <hr style="margin: 15px 0; border: 0.5px solid var(--ios-opaque-separator);">
@@ -9150,18 +9288,47 @@
                 </div>
               </div>
             </div>
-
-            ${coMakerSection}
-            ${collateralSection}
           </div>`;
+
+        // Co-maker Tab Content
+        let coMakerTabHtml = `
+          <div class="client-detail-stagger" style="display:grid; gap:8px;">
+            <h4 class="detail-row" style="color: var(--ios-blue); margin-bottom: 10px;">Co-maker Information</h4>`;
+
+        if (client.coMaker && (client.coMaker.name || client.coMaker.contactNumber || client.coMaker.address)) {
+          coMakerTabHtml += `
+            <div class="detail-row"><strong>Name:</strong> ${client.coMaker.name || 'Not provided'}</div>
+            <div class="detail-row"><strong>Contact:</strong> ${formatPhone(client.coMaker.contactNumber || 'Not provided')}</div>
+            <div class="detail-row"><strong>Address:</strong> ${client.coMaker.address || 'Not provided'}</div>`;
+        } else {
+          coMakerTabHtml += `
+            <div class="detail-row" style="color: var(--ios-secondary-label); font-style: italic;">No co-maker information provided</div>`;
+        }
+
+        coMakerTabHtml += `</div>`;
+
+        // Populate both tabs
         const modalEl = document.getElementById("viewClientModal");
         const modalContent = modalEl.querySelector(".modal-content");
-        const contentEl = document.getElementById("viewClientContent");
-        contentEl.innerHTML = html;
-        contentEl.classList.remove("client-view-animate");
-        void contentEl.offsetWidth;
-        contentEl.classList.add("client-view-animate");
+        const clientContentEl = document.getElementById("viewClientContent");
+        const coMakerContentEl = document.getElementById("viewCoMakerContent");
+
+        clientContentEl.innerHTML = clientTabHtml;
+        coMakerContentEl.innerHTML = coMakerTabHtml;
+
+        // Reset tab state - activate client tab by default
+        switchModalTab('client');
+
+        // Add animations
+        clientContentEl.classList.remove("client-view-animate");
+        coMakerContentEl.classList.remove("client-view-animate");
+        void clientContentEl.offsetWidth;
+        void coMakerContentEl.offsetWidth;
+        clientContentEl.classList.add("client-view-animate");
+        coMakerContentEl.classList.add("client-view-animate");
+
         modalEl.classList.add("active");
+
         // Initialize calendar state to current month
         const now = new Date();
         calendarViewState.clientId = clientId;
@@ -9518,7 +9685,7 @@
 
           // Set volume
           gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(this.settings.volume * 0.3, this.audioContext.currentTime + 0.05);
+          gainNode.gain.linearRampToValueAtTime(this.settings.volume * 0.8, this.audioContext.currentTime + 0.05);
 
           switch (type) {
             case 'gentle':
@@ -9545,7 +9712,7 @@
                 gain2.connect(this.audioContext.destination);
                 osc2.frequency.setValueAtTime(800, this.audioContext.currentTime);
                 gain2.gain.setValueAtTime(0, this.audioContext.currentTime);
-                gain2.gain.linearRampToValueAtTime(this.settings.volume * 0.3, this.audioContext.currentTime + 0.05);
+                gain2.gain.linearRampToValueAtTime(this.settings.volume * 0.8, this.audioContext.currentTime + 0.05);
                 gain2.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.2);
                 osc2.start(this.audioContext.currentTime);
                 osc2.stop(this.audioContext.currentTime + 0.2);
@@ -9563,7 +9730,7 @@
                   gain.connect(this.audioContext.destination);
                   osc.frequency.setValueAtTime(freq, this.audioContext.currentTime);
                   gain.gain.setValueAtTime(0, this.audioContext.currentTime);
-                  gain.gain.linearRampToValueAtTime(this.settings.volume * 0.2, this.audioContext.currentTime + 0.05);
+                  gain.gain.linearRampToValueAtTime(this.settings.volume * 0.6, this.audioContext.currentTime + 0.05);
                   gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.6);
                   osc.start(this.audioContext.currentTime);
                   osc.stop(this.audioContext.currentTime + 0.6);
