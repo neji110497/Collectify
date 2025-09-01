@@ -5335,7 +5335,7 @@
               reader.readAsDataURL(input.files[0]);
             }
           } else {
-            console.log('⚠️ No files selected. Please select files first.');
+            console.log('���️ No files selected. Please select files first.');
             showNotification('Please select files first, then run the test', 'error');
           }
 
@@ -6416,7 +6416,7 @@
         if (loanAmount % 1000 !== 0) {
           const el = document.getElementById("editLoanAmount");
           if (el) el.classList.add("input-error");
-          showNotification("Loan amount must be a multiple of ₱1,000 (e.g., 1000, 2000, ...)", "error");
+          showNotification("Loan amount must be a multiple of ���1,000 (e.g., 1000, 2000, ...)", "error");
           setTimeout(()=>{ if (el) el.classList.remove("input-error"); }, 2000);
           return;
         }
@@ -8017,9 +8017,9 @@
         document.getElementById("paidToday").textContent = paidClients.length;
         document.getElementById("notPaidToday").textContent =
           notPaidClients.length;
-        const expEl = document.getElementById("totalExpectedToday"); if (expEl) expEl.innerHTML = "&#8369;" + totalExpected.toFixed(2);
-        const actEl = document.getElementById("actualCollectedToday"); if (actEl) actEl.innerHTML = "&#8369;" + actualCollected.toFixed(2);
-        const op = document.getElementById("overduePaidToday"); if (op) op.innerHTML = "&#8369;" + overduePaidTotal.toFixed(2);
+        const expEl = document.getElementById("totalExpectedToday"); if (expEl) expEl.textContent = "₱" + totalExpected.toFixed(2);
+        const actEl = document.getElementById("actualCollectedToday"); if (actEl) actEl.textContent = "₱" + actualCollected.toFixed(2);
+        const op = document.getElementById("overduePaidToday"); if (op) op.textContent = "₱" + overduePaidTotal.toFixed(2);
 
         // Update lists
         updateTrackerList("paidClientsList", paidClients, true);
@@ -8134,7 +8134,7 @@
             if (diff > 0.01) {
               statusBadge =
                 '<span class="status-badge status-overpay">Overpayment</span>';
-              extraLine = `<p>Over by �����${Math.abs(diff).toFixed(2)}</p>`;
+              extraLine = `<p>Over by ₱${Math.abs(diff).toFixed(2)}</p>`;
             } else if (diff < -0.01) {
               statusBadge =
                 '<span class="status-badge status-underpaid">Underpaid</span>';
