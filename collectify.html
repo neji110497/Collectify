@@ -5476,6 +5476,15 @@
                     <div style="display: flex; gap: 4px; align-items: center;">
                       ${(() => {
                         let indicators = [];
+
+                        // Add missed payment badge for active clients
+                        if (client.status === 'active') {
+                          const missedDays = calculateMissedPaymentDays(client);
+                          if (missedDays > 0) {
+                            indicators.push(`<span class="status-badge status-red" style="font-size: 8px; padding: 2px 4px; background: var(--ios-red); color: white;">Missed ${missedDays}</span>`);
+                          }
+                        }
+
                         if (client.coMaker && (client.coMaker.name || client.coMaker.contactNumber)) {
                           indicators.push('<span class="status-badge status-office" style="font-size: 8px; padding: 2px 4px;">Co-maker</span>');
                         }
