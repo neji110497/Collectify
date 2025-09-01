@@ -11716,6 +11716,15 @@ self.addEventListener('fetch', (event) => {
           progressEl.style.display = 'block';
           progressEl.textContent = 'Initializing...';
 
+          // Preflight checks
+          if (!navigator.gpu) {
+            progressEl.textContent = 'WebGPU not available on this device/browser.';
+            showNotification('WebGPU not available. Use latest Chrome/Edge/Android Chrome or iOS Safari 18+.', 'error');
+            aiMode = 'rules';
+            updateEngineUI();
+            return;
+          }
+
           const mod = await import('https://esm.run/@mlc-ai/web-llm');
 
           const initOpts = {
@@ -11739,6 +11748,7 @@ self.addEventListener('fetch', (event) => {
               statusEl.textContent = 'Engine: LLM (worker)';
             } catch (err) {
               workerError = err;
+              if (progressEl) progressEl.textContent = 'Worker init failed (no cross-origin isolation). Falling back…';
             }
           }
           if (!engine) {
@@ -11752,6 +11762,10 @@ self.addEventListener('fetch', (event) => {
           aiMode = 'llm';
           updateEngineUI();
         } catch (e) {
+          if (document.getElementById('aiDownloadProgress')) {
+            document.getElementById('aiDownloadProgress').style.display = 'block';
+            document.getElementById('aiDownloadProgress').textContent = `Error: ${e && e.message ? e.message : 'Failed to load LLM'}`;
+          }
           showNotification('Failed to load LLM. Staying on rules engine.', 'error');
           aiMode = 'rules';
           updateEngineUI();
