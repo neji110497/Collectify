@@ -10442,9 +10442,9 @@
           // Make one "due soon"
           if (i === 6) {
             start = formatDateLocal(addDaysLocal(today, -term + 2));
-            // Apply validation to due soon client as well
-            if (!isValidReleaseDay(start)) {
-              start = getNextValidReleaseDay(start);
+            // Apply validation to due soon client as well (day after release day)
+            if (!isValidStartDay(start)) {
+              start = getNextValidStartDate(start);
             }
             dueDate = formatDateLocal(addDaysLocal(today, 2));
           }
