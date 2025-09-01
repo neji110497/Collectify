@@ -11092,6 +11092,12 @@
           <div>
             <h3>🤖 Collectify AI Assistant</h3>
             <div class="ai-status">Ready to help with your lending app</div>
+            <div class="ai-status" id="aiEngineStatus">Engine: Rules (offline)</div>
+            <div class="ai-engine-actions" style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
+              <button class="ai-quick-action" id="enableLLMButton" onclick="enableLLM()">Enable LLM (download)</button>
+              <button class="ai-quick-action" id="switchToRulesButton" onclick="switchAIMode('rules')" style="display:none;">Use Rules</button>
+            </div>
+            <div class="ai-status" id="aiDownloadProgress" style="display:none;"></div>
           </div>
           <button class="ai-chat-close" onclick="closeAIChat()" aria-label="Close chat">✕</button>
         </div>
@@ -11537,23 +11543,34 @@
       function sendAIMessage() {
         const input = document.getElementById('aiChatInput');
         const message = input.value.trim();
-
         if (!message) return;
-
-        // Add user message
         addChatMessage(message, 'user');
         input.value = '';
         autoResizeChatInput();
-
-        // Show typing indicator
         showTypingIndicator();
+        setSendingState(true);
 
-        // Generate AI response with realistic delay
-        setTimeout(() => {
-          hideTypingIndicator();
-          const response = collectifyAI.processMessage(message);
-          addChatMessage(response, 'assistant');
-        }, 800 + Math.random() * 1200); // Random delay 0.8-2s for realism
+        (async () => {
+          try {
+            let responseText = '';
+            const m = (message || '').toLowerCase();
+            const isAction = !!(collectifyAI.detectTab(m) || collectifyAI.parsePaymentCommand(m) || collectifyAI.parseViewClient(m) || collectifyAI.parseListQuery(m));
+
+            if (aiMode === 'llm' && webllmReady && !isAction) {
+              responseText = await llmGenerate(message);
+            } else {
+              responseText = collectifyAI.processMessage(message);
+            }
+
+            hideTypingIndicator();
+            addChatMessage(responseText, 'assistant');
+          } catch (e) {
+            hideTypingIndicator();
+            addChatMessage('LLM error; using offline assistant instead.', 'assistant');
+          } finally {
+            setSendingState(false);
+          }
+        })();
       }
 
       function addChatMessage(message, type) {
@@ -11590,6 +11607,92 @@
           typingIndicator.remove();
         }
         collectifyAI.isTyping = false;
+      }
+
+      // On-device LLM integration (first-run download, then offline)
+      let aiMode = 'rules';
+      let webllmEngine = null;
+      let webllmReady = false;
+      let webllmModelId = 'Phi-3-mini-4k-instruct-q4f32_1-MLC';
+
+      async function enableLLM() {
+        try {
+          const statusEl = document.getElementById('aiEngineStatus');
+          const progressEl = document.getElementById('aiDownloadProgress');
+          if (webllmReady) { aiMode = 'llm'; updateEngineUI(); return; }
+          statusEl.textContent = 'Engine: LLM (preparing)';
+          progressEl.style.display = 'block';
+          progressEl.textContent = 'Initializing...';
+
+          const mod = await import('https://esm.run/@mlc-ai/web-llm');
+          webllmEngine = await mod.CreateWebWorkerMLCEngine(
+            new URL('https://esm.run/@mlc-ai/web-llm/dist/worker.js'),
+            {
+              model: webllmModelId,
+              initProgressCallback: (p) => {
+                try {
+                  if (!progressEl) return;
+                  const pct = p?.progress != null ? Math.round(p.progress * 100) : null;
+                  progressEl.textContent = p?.text ? p.text : (pct != null ? `Loading model: ${pct}%` : 'Loading...');
+                } catch (_) {}
+              }
+            }
+          );
+
+          webllmReady = true;
+          aiMode = 'llm';
+          updateEngineUI();
+        } catch (e) {
+          showNotification('Failed to load LLM. Staying on rules engine.', 'error');
+          aiMode = 'rules';
+          updateEngineUI();
+        }
+      }
+
+      function switchAIMode(mode) {
+        aiMode = (mode === 'llm' && webllmReady) ? 'llm' : 'rules';
+        updateEngineUI();
+      }
+
+      function updateEngineUI() {
+        const statusEl = document.getElementById('aiEngineStatus');
+        const enableBtn = document.getElementById('enableLLMButton');
+        const rulesBtn = document.getElementById('switchToRulesButton');
+        const progressEl = document.getElementById('aiDownloadProgress');
+        if (!statusEl || !enableBtn || !rulesBtn) return;
+        if (aiMode === 'llm') {
+          statusEl.textContent = 'Engine: LLM (offline after first download)';
+          enableBtn.style.display = 'none';
+          rulesBtn.style.display = 'inline-flex';
+          if (progressEl) progressEl.style.display = 'none';
+        } else {
+          statusEl.textContent = 'Engine: Rules (offline)';
+          enableBtn.style.display = 'inline-flex';
+          rulesBtn.style.display = 'none';
+        }
+      }
+
+      async function llmGenerate(userMessage) {
+        try {
+          if (!webllmReady || !webllmEngine) throw new Error('LLM not ready');
+          const systemPrompt = "You are Collectify's on-device assistant. Be concise, clear, and helpful. If the user asks to navigate or record payments, keep replies short. Avoid code unless asked.";
+          const messages = [{ role: 'system', content: systemPrompt }];
+          const hist = (collectifyAI.messageHistory || []).slice(-10).map(h => ({ role: h.type === 'user' ? 'user' : 'assistant', content: h.message }));
+          messages.push(...hist);
+          messages.push({ role: 'user', content: userMessage });
+          const out = await webllmEngine.chat.completions.create({ messages, temperature: 0.3, max_tokens: 300, stream: false });
+          const txt = out?.choices?.[0]?.message?.content?.trim();
+          return txt || 'Okay.';
+        } catch (e) {
+          return collectifyAI.processMessage(userMessage);
+        }
+      }
+
+      function setSendingState(disabled) {
+        const btn = document.getElementById('aiChatSend');
+        const input = document.getElementById('aiChatInput');
+        if (btn) btn.disabled = !!disabled;
+        if (input) input.disabled = !!disabled;
       }
 
       function handleChatInputKeydown(event) {
