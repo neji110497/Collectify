@@ -2231,6 +2231,9 @@
       .calendar-cell.disabled { opacity: 0.45; filter: grayscale(0.2); }
       .calendar-cell.today { box-shadow: 0 0 0 2px rgba(0,122,255,0.25) inset; }
       .calendar-cell.absent { background: rgba(255,59,48,0.15); border: 1px solid var(--ios-red); }
+      /* Sunday highlight in client calendar (applies to demo and normal modes) */
+      .calendar-cell.sunday:not(.absent):not(.selected) { background: rgba(255,59,48,0.10); border-color: var(--ios-red); }
+      .calendar-cell.sunday:not(.absent) .day-num { color: var(--ios-red); }
       /* Selected day highlight (inline and sheet) */
       .calendar-cell.selected { box-shadow: 0 0 0 2px rgba(0,122,255,0.45) inset; background: rgba(0,122,255,0.08); }
       .day-num { font-size: 12px; color: var(--ios-secondary-label); font-weight: 600; }
@@ -6920,7 +6923,7 @@
               <div style="display:flex; justify-content: space-between; align-items:center;">
                 <div>
                   <h4>${it.clientName}</h4>
-                  <p>Paid: ��${it.paid.toFixed(2)} • Expected: ₱${it.expected.toFixed(2)} <span class="status-badge status-overpay" style="margin-left:6px">Over</span></p>
+                  <p>Paid: ₱${it.paid.toFixed(2)} • Expected: ₱${it.expected.toFixed(2)} <span class="status-badge status-overpay" style="margin-left:6px">Over</span></p>
                   <p>Over by ₱${it.overBy.toFixed(2)}</p>
                 </div>
               </div>
@@ -7753,7 +7756,7 @@
           <div class="tracker-client-item">
             <div class="tracker-client-info">
               <h5>${entry.clientName}</h5>
-              <p>Total paid today: ��${entry.totalPaid.toFixed(2)}</p>
+              <p>Total paid today: ₱${entry.totalPaid.toFixed(2)}</p>
               <p>${typeBadges} ${statusBadge}</p>
               ${extraLine}
             </div>
@@ -8133,7 +8136,7 @@
         const date = document.getElementById('abonoPaymentDate')?.value || todayLocalDateStr();
         if (!lenderId) { info.textContent = 'Available advance: ₱0.00'; return; }
         const avail = computeAvailableAdvance(lenderId, date);
-        info.textContent = `Available advance: ��${avail.toFixed(2)}`;
+        info.textContent = `Available advance: ₱${avail.toFixed(2)}`;
       }
 
       // Settings functions
@@ -8959,7 +8962,7 @@
               .reduce((s,p)=>s + (Number(p.amount)||0), 0);
             const overpay = expected > 0 && paidSum > expected + 0.0001;
 
-            const cellCls = [ 'calendar-cell', inRange ? '' : 'disabled', ds===todayKey ? 'today' : '', isAbsent ? 'absent' : '' ].filter(Boolean).join(' ');
+            const cellCls = [ 'calendar-cell', inRange ? '' : 'disabled', ds===todayKey ? 'today' : '', isAbsent ? 'absent' : '', (cur.getDay()===0 ? 'sunday' : '') ].filter(Boolean).join(' ');
             const dots = [
               hasNotebook ? '<span class="cal-dot cal-notebook" title="Notebook"></span>' : '',
               hasOffice ? '<span class="cal-dot cal-office" title="Office"></span>' : '',
