@@ -3556,6 +3556,10 @@
                 "
               >
                 <h3>Adv Payment History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="advFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('adv','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="advFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('adv','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button
                   class="btn btn-danger"
                   onclick="confirmClearPaymentHistory('adv')"
@@ -3804,7 +3808,7 @@
                 </div>
               </div>
               <small style="color: var(--ios-secondary-label); display:block; margin-top:6px;">
-                �� Automatically checks for overdue payments and plays notification sounds.
+                📢 Automatically checks for overdue payments and plays notification sounds.
                 Notifications require user interaction to work (click anywhere first).
               </small>
             </div>
