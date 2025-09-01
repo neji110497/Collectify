@@ -3414,7 +3414,7 @@
                     <span class="label" id="advClientPickerLabel"
                       >Choose a client...</span
                     >
-                    <span class="chevron">���</span>
+                    <span class="chevron">›</span>
                   </button>
                 </div>
               </div>
@@ -7392,7 +7392,7 @@ self.addEventListener('fetch', (event) => {
                 <div>
                   <h4>${payment.clientName}</h4>
                   <p>₱${payment.amount.toFixed(2)} • ${parseLocalDate(payment.date).toLocaleDateString()}</p>
-                  ${payment.paymentType === 'abono' && payment.lenderName ? `<p>Lender: ${payment.lenderName}${(payment.repaid||0)>0 ? ` • Repaid: ₱${(payment.repaid||0).toFixed(2)} ��� Outstanding: ₱${Math.max(0, payment.amount - (payment.repaid||0)).toFixed(2)}` : ''}</p>` : ''}
+                  ${payment.paymentType === 'abono' && payment.lenderName ? `<p>Lender: ${payment.lenderName}${(payment.repaid||0)>0 ? ` • Repaid: ₱${(payment.repaid||0).toFixed(2)} • Outstanding: ₱${Math.max(0, payment.amount - (payment.repaid||0)).toFixed(2)}` : ''}</p>` : ''}
                   ${payment.paymentType === 'adv' && payment.initialAmount && payment.initialAmount > payment.amount ? `<p>Borrowed via Abono: ₱${(payment.initialAmount - payment.amount).toFixed(2)}${formatAdvBorrowers(payment)} • Remaining: ₱${payment.amount.toFixed(2)} of ₱${payment.initialAmount.toFixed(2)}</p>` : ''}
                   <p><span class="status-badge status-active">${payment.type}</span></p>
                 </div>
@@ -11752,6 +11752,7 @@ self.addEventListener('fetch', (event) => {
           aiMode = 'llm';
           updateEngineUI();
         } catch (e) {
+          showNotification('Failed to load LLM. Staying on rules engine.', 'error');
           aiMode = 'rules';
           updateEngineUI();
         }
