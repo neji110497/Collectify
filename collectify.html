@@ -560,6 +560,65 @@
         -webkit-backdrop-filter: blur(10px);
       }
 
+      /* Custom range slider styling for volume control */
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 6px;
+        background: var(--ios-gray5);
+        border-radius: 3px;
+        outline: none;
+        padding: 0;
+        margin: 8px 0;
+        background: linear-gradient(to right, var(--ios-blue) 0%, var(--ios-blue) var(--slider-progress, 70%), var(--ios-gray5) var(--slider-progress, 70%), var(--ios-gray5) 100%);
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--ios-blue);
+        cursor: pointer;
+        border: 2px solid var(--ios-secondary-grouped-background);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s var(--ios-easing);
+      }
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      input[type="range"]::-webkit-slider-thumb:active {
+        transform: scale(1.15);
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--ios-blue);
+        cursor: pointer;
+        border: 2px solid var(--ios-secondary-grouped-background);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s var(--ios-easing);
+      }
+
+      input[type="range"]::-moz-range-track {
+        height: 6px;
+        background: var(--ios-gray5);
+        border-radius: 3px;
+        border: none;
+      }
+
+      input[type="range"]::-moz-range-progress {
+        height: 6px;
+        background: var(--ios-blue);
+        border-radius: 3px;
+      }
+
       input:focus,
       select:focus,
       textarea:focus {
@@ -5903,7 +5962,7 @@
         if (loanAmount % 1000 !== 0) {
           const el = document.getElementById("editLoanAmount");
           if (el) el.classList.add("input-error");
-          showNotification("Loan amount must be a multiple of ���1,000 (e.g., 1000, 2000, ...)", "error");
+          showNotification("Loan amount must be a multiple of ����1,000 (e.g., 1000, 2000, ...)", "error");
           setTimeout(()=>{ if (el) el.classList.remove("input-error"); }, 2000);
           return;
         }
@@ -8048,7 +8107,7 @@
         const date = document.getElementById('abonoPaymentDate')?.value || todayLocalDateStr();
         if (!lenderId) { info.textContent = 'Available advance: ₱0.00'; return; }
         const avail = computeAvailableAdvance(lenderId, date);
-        info.textContent = `Available advance: ₱${avail.toFixed(2)}`;
+        info.textContent = `Available advance: ��${avail.toFixed(2)}`;
       }
 
       // Settings functions
