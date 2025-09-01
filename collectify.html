@@ -3414,7 +3414,7 @@
                     <span class="label" id="advClientPickerLabel"
                       >Choose a client...</span
                     >
-                    <span class="chevron">›</span>
+                    <span class="chevron">���</span>
                   </button>
                 </div>
               </div>
@@ -7392,7 +7392,7 @@ self.addEventListener('fetch', (event) => {
                 <div>
                   <h4>${payment.clientName}</h4>
                   <p>₱${payment.amount.toFixed(2)} • ${parseLocalDate(payment.date).toLocaleDateString()}</p>
-                  ${payment.paymentType === 'abono' && payment.lenderName ? `<p>Lender: ${payment.lenderName}${(payment.repaid||0)>0 ? ` • Repaid: ₱${(payment.repaid||0).toFixed(2)} • Outstanding: ₱${Math.max(0, payment.amount - (payment.repaid||0)).toFixed(2)}` : ''}</p>` : ''}
+                  ${payment.paymentType === 'abono' && payment.lenderName ? `<p>Lender: ${payment.lenderName}${(payment.repaid||0)>0 ? ` • Repaid: ₱${(payment.repaid||0).toFixed(2)} ��� Outstanding: ₱${Math.max(0, payment.amount - (payment.repaid||0)).toFixed(2)}` : ''}</p>` : ''}
                   ${payment.paymentType === 'adv' && payment.initialAmount && payment.initialAmount > payment.amount ? `<p>Borrowed via Abono: ₱${(payment.initialAmount - payment.amount).toFixed(2)}${formatAdvBorrowers(payment)} • Remaining: ₱${payment.amount.toFixed(2)} of ₱${payment.initialAmount.toFixed(2)}</p>` : ''}
                   <p><span class="status-badge status-active">${payment.type}</span></p>
                 </div>
@@ -11697,53 +11697,57 @@ self.addEventListener('fetch', (event) => {
       let webllmReady = false;
       let webllmModelId = 'Phi-3-mini-4k-instruct-q4f32_1-MLC';
 
-      const llmSupport = (() => {
+      const llmEnv = (() => {
         try {
           const secure = location.protocol === 'https:' || location.hostname === 'localhost';
           const coi = typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated === true;
           const hasGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
-          return { supported: secure && hasGPU && coi, secure, coi, hasGPU };
-        } catch (_) { return { supported: false, secure: false, coi: false, hasGPU: false }; }
+          return { secure, coi, hasGPU };
+        } catch (_) { return { secure: false, coi: false, hasGPU: false }; }
       })();
-      function isLLMSupported(){ return !!llmSupport.supported; }
-      function reflectLLMSupportInUI(){
-        const statusEl = document.getElementById('aiEngineStatus');
-        const enableBtn = document.getElementById('enableLLMButton');
-        const rulesBtn = document.getElementById('switchToRulesButton');
-        if (!statusEl || !enableBtn || !rulesBtn) return;
-        if (!isLLMSupported()){
-          aiMode = 'rules';
-          statusEl.textContent = 'Engine: Rules (offline)';
-          enableBtn.style.display = 'none';
-          rulesBtn.style.display = 'none';
-        }
-      }
+      function reflectLLMSupportInUI(){ updateEngineUI(); }
 
       async function enableLLM() {
         try {
           const statusEl = document.getElementById('aiEngineStatus');
           const progressEl = document.getElementById('aiDownloadProgress');
-          if (!isLLMSupported()) { aiMode = 'rules'; updateEngineUI(); return; }
           if (webllmReady) { aiMode = 'llm'; updateEngineUI(); return; }
           statusEl.textContent = 'Engine: LLM (preparing)';
           progressEl.style.display = 'block';
           progressEl.textContent = 'Initializing...';
 
           const mod = await import('https://esm.run/@mlc-ai/web-llm');
-          webllmEngine = await mod.CreateWebWorkerMLCEngine(
-            new URL('https://esm.run/@mlc-ai/web-llm/dist/worker.js'),
-            {
-              model: webllmModelId,
-              initProgressCallback: (p) => {
-                try {
-                  if (!progressEl) return;
-                  const pct = p?.progress != null ? Math.round(p.progress * 100) : null;
-                  progressEl.textContent = p?.text ? p.text : (pct != null ? `Loading model: ${pct}%` : 'Loading...');
-                } catch (_) {}
-              }
-            }
-          );
 
+          const initOpts = {
+            model: webllmModelId,
+            initProgressCallback: (p) => {
+              try {
+                if (!progressEl) return;
+                const pct = p?.progress != null ? Math.round(p.progress * 100) : null;
+                progressEl.textContent = p?.text ? p.text : (pct != null ? `Loading model: ${pct}%` : 'Loading...');
+              } catch (_) {}
+            }
+          };
+
+          // Prefer worker when cross-origin isolated; otherwise fall back to main thread
+          const preferWorker = !!llmEnv.coi;
+          let engine = null;
+          let workerError = null;
+          if (preferWorker) {
+            try {
+              engine = await mod.CreateWebWorkerMLCEngine(new URL('https://esm.run/@mlc-ai/web-llm/dist/worker.js'), initOpts);
+              statusEl.textContent = 'Engine: LLM (worker)';
+            } catch (err) {
+              workerError = err;
+            }
+          }
+          if (!engine) {
+            // Fallback: run on main thread (works on many browsers even without COI)
+            engine = await mod.CreateMLCEngine(initOpts);
+            statusEl.textContent = 'Engine: LLM (main thread)';
+          }
+
+          webllmEngine = engine;
           webllmReady = true;
           aiMode = 'llm';
           updateEngineUI();
@@ -11815,9 +11819,7 @@ self.addEventListener('fetch', (event) => {
 
       // Initialize chat on page load
       document.addEventListener('DOMContentLoaded', function() {
-        // Reflect environment support for on-device LLM
         reflectLLMSupportInUI();
-        // Add keyboard shortcut (Ctrl/Cmd + /)
         document.addEventListener('keydown', function(e) {
           if ((e.ctrlKey || e.metaKey) && e.key === '/') {
             e.preventDefault();
