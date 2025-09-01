@@ -2268,13 +2268,41 @@
         to { opacity: 1; transform: scale(1); }
       }
       /* Credits footer */
-      .credits-container { padding: 12px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: 100%; text-align: center; color: var(--ios-secondary-label); font-size: 12px; margin: 0 auto; }
-      .credits-row { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
+      .credits-container {
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        text-align: center;
+        color: var(--ios-secondary-label);
+        font-size: 12px;
+        margin: 0 auto;
+        list-style: none;
+        list-style-type: none;
+      }
+      .credits-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        list-style: none;
+        list-style-type: none;
+      }
       .credits-text { opacity: 0.9; }
       .credits-name { font-weight: 700; color: var(--ios-label); }
       .credits-link { color: var(--ios-blue); text-decoration: none; font-weight: 600; }
       .credits-year { opacity: 0.8; }
       .credits-separator { opacity: 0.45; }
+
+      /* Ensure no bullet points anywhere in credits */
+      .credits-container *, .credits-row * {
+        list-style: none !important;
+        list-style-type: none !important;
+      }
 
       /* AI Chatbot Styles */
       #aiChatButton {
