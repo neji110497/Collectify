@@ -9166,6 +9166,29 @@
         if (savedDarkMode) isDarkMode = JSON.parse(savedDarkMode);
       }
 
+      // Modal tab switching function
+      function switchModalTab(tabName) {
+        // Remove active class from all modal tabs
+        document.querySelectorAll('.modal-tab').forEach(tab => {
+          tab.classList.remove('active');
+        });
+
+        // Hide all modal tab panels
+        document.querySelectorAll('.modal-tab-panel').forEach(panel => {
+          panel.classList.remove('active');
+        });
+
+        // Add active class to clicked tab
+        document.querySelector(`.modal-tab[data-modal-tab="${tabName}"]`).classList.add('active');
+
+        // Show corresponding tab panel
+        if (tabName === 'client') {
+          document.getElementById('clientTabContent').classList.add('active');
+        } else if (tabName === 'comaker') {
+          document.getElementById('comakerTabContent').classList.add('active');
+        }
+      }
+
       // View client details
       function openViewClient(clientId, originEl) {
         const client = clients.find((c) => c.id === clientId);
