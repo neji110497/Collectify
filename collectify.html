@@ -4359,87 +4359,6 @@
       const DB_NAME = "CollectifyDB";
       const DB_VERSION = 1;
 
-      // Inline Service Worker registration helper (precache + runtime cache)
-      async function registerInlineServiceWorker() {
-        const swSrc = `
-self.addEventListener('install', (event) => {
-  event.waitUntil((async () => {
-    const cache = await caches.open('collectify-precache-v1');
-    await cache.addAll([
-      './collectify.html',
-      './index.html',
-      './manifest.json'
-    ]);
-    self.skipWaiting();
-  })());
-});
-self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    const keep = new Set(['collectify-precache-v1','collectify-runtime-v1']);
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(k => !keep.has(k)).map(k => caches.delete(k)));
-    await self.clients.claim();
-  })());
-});
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  const same = url.origin === location.origin;
-
-  if (req.mode === 'navigate') {
-    event.respondWith((async () => {
-      const cache = await caches.open('collectify-precache-v1');
-      const cached = await cache.match('./collectify.html');
-      try {
-        const net = await fetch(req);
-        return net;
-      } catch (e) {
-        if (cached) return cached;
-        return new Response('Offline', { status: 503, statusText: 'Offline' });
-      }
-    })());
-    return;
-  }
-
-  if (same) {
-    event.respondWith((async () => {
-      const cache = await caches.open('collectify-precache-v1');
-      const cached = await cache.match(req);
-      if (cached) return cached;
-      try {
-        const net = await fetch(req);
-        cache.put(req, net.clone());
-        return net;
-      } catch (e) {
-        return cached || Response.error();
-      }
-    })());
-    return;
-  }
-
-  // Cross-origin: network-first with runtime cache (covers LLM worker/model after first run)
-  event.respondWith((async () => {
-    const cache = await caches.open('collectify-runtime-v1');
-    try {
-      const net = await fetch(req, { mode: req.mode, credentials: 'omit' });
-      if (net && (net.status === 200 || net.type === 'opaque')) {
-        cache.put(req, net.clone());
-      }
-      return net;
-    } catch (e) {
-      const cached = await cache.match(req);
-      if (cached) return cached;
-      return Response.error();
-    }
-  })());
-});
-`;
-        const blob = new Blob([swSrc], { type: 'text/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        const reg = await navigator.serviceWorker.register(swUrl, { scope: './' });
-        return reg;
-      }
 
       // IndexedDB Setup
       function initDB() {
@@ -4645,17 +4564,6 @@ self.addEventListener('fetch', (event) => {
         updatePaymentHistory("abono");
         updateAbsenceHistory();
 
-        // Register inline service worker (works for single-file packaging)
-        const isSecure =
-          location.protocol === "https:" || location.hostname === "localhost";
-        if ("serviceWorker" in navigator && isSecure) {
-          try {
-            await registerInlineServiceWorker();
-            console.log("Inline Service Worker registered");
-          } catch (error) {
-            console.log("Inline Service Worker registration failed:", error);
-          }
-        }
 
         // Initialize iOS-styled picker for Absent -> Select Client
         setupAbsentClientIOSPicker();
