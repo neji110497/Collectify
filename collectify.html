@@ -3438,9 +3438,9 @@
                   <input type="hidden" id="holidayDate" />
                   <div id="holidayInlineCalendar" class="client-calendar" style="margin-top:10px;">
                     <div class="calendar-header">
-                      <button type="button" class="cal-nav" id="hcalPrev" aria-label="Previous month">&lt;</button>
+                      <button type="button" class="cal-nav" id="hcalPrev" aria-label="Previous month">‹</button>
                       <div class="calendar-title" id="hcalTitle">Month YYYY</div>
-                      <button type="button" class="cal-nav" id="hcalNext" aria-label="Next month">&gt;</button>
+                      <button type="button" class="cal-nav" id="hcalNext" aria-label="Next month">›</button>
                     </div>
                     <div class="calendar-grid" id="hcalGrid"></div>
                     <div class="calendar-legend" style="margin-top:10px;">
@@ -5083,11 +5083,16 @@
         notification.id = `collateral-notification-${client.id}`;
         document.body.appendChild(notification);
 
-        // Also show a regular notification
+        // Also show a regular notification and play sound
         const summaryMsg = missedSinceStartCount && missedSinceStartCount > 0
           ? `Client ${client.name} has missed ${missedSinceStartCount} working day(s) since start.`
           : `Client ${client.name} missed a payment on the last working day.`;
         showNotification(summaryMsg, 'error');
+
+        // Play notification sound
+        if (notificationSystem) {
+          notificationSystem.playNotificationSound('alert');
+        }
       }
 
       // Contact co-maker helper
@@ -8782,9 +8787,9 @@
               <h4 class="detail-row" style="color: var(--ios-blue); margin-bottom: 8px;">Payment Calendar</h4>
               <div class="client-calendar detail-row">
                 <div class="calendar-header">
-                  <button type="button" class="cal-nav" aria-label="Previous month" onclick="changeClientCalendarMonth(-1)">&lt;</button>
+                  <button type="button" class="cal-nav" aria-label="Previous month" onclick="changeClientCalendarMonth(-1)">‹</button>
                   <div class="calendar-title" id="clientCalendarTitle">-</div>
-                  <button type="button" class="cal-nav" aria-label="Next month" onclick="changeClientCalendarMonth(1)">&gt;</button>
+                  <button type="button" class="cal-nav" aria-label="Next month" onclick="changeClientCalendarMonth(1)">›</button>
                 </div>
                 <div class="calendar-grid" id="clientCalendarGrid"></div>
                 <div class="calendar-legend">
