@@ -560,6 +560,65 @@
         -webkit-backdrop-filter: blur(10px);
       }
 
+      /* Custom range slider styling for volume control */
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 6px;
+        background: var(--ios-gray5);
+        border-radius: 3px;
+        outline: none;
+        padding: 0;
+        margin: 8px 0;
+        background: linear-gradient(to right, var(--ios-blue) 0%, var(--ios-blue) var(--slider-progress, 70%), var(--ios-gray5) var(--slider-progress, 70%), var(--ios-gray5) 100%);
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--ios-blue);
+        cursor: pointer;
+        border: 2px solid var(--ios-secondary-grouped-background);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s var(--ios-easing);
+      }
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      input[type="range"]::-webkit-slider-thumb:active {
+        transform: scale(1.15);
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--ios-blue);
+        cursor: pointer;
+        border: 2px solid var(--ios-secondary-grouped-background);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s var(--ios-easing);
+      }
+
+      input[type="range"]::-moz-range-track {
+        height: 6px;
+        background: var(--ios-gray5);
+        border-radius: 3px;
+        border: none;
+      }
+
+      input[type="range"]::-moz-range-progress {
+        height: 6px;
+        background: var(--ios-blue);
+        border-radius: 3px;
+      }
+
       input:focus,
       select:focus,
       textarea:focus {
@@ -3274,6 +3333,7 @@
                     step="1"
                     value="70"
                     onchange="updateNotificationVolume()"
+                    oninput="updateVolumeSliderVisual()"
                   />
                 </div>
                 <div class="form-group">
@@ -4184,6 +4244,11 @@
 
         // Set up periodic checking for missed payments (every 30 minutes)
         setInterval(checkMissedPayments, 30 * 60 * 1000);
+
+        // Initialize volume slider visual
+        setTimeout(() => {
+          updateVolumeSliderVisual();
+        }, 100);
       });
 
       // Setup tab listeners
@@ -5407,6 +5472,42 @@
         return `payment due today`;
       }
 
+      // Calculate missed payment days for a client
+      function calculateMissedPaymentDays(client) {
+        if (client.status !== 'active') return 0;
+
+        const today = new Date();
+        const todayStr = today.toISOString().split("T")[0];
+
+        // Get all payments for this client across all payment types
+        const allPayments = Object.values(payments).flat()
+          .filter(p => p.clientId === client.id);
+        const paidDates = new Set(allPayments.map(p => p.date));
+
+        const clientStart = new Date(client.startDate);
+        const clientStartOnly = new Date(clientStart.getFullYear(), clientStart.getMonth(), clientStart.getDate());
+
+        // Do not evaluate clients whose start date is in the future
+        if (today < clientStartOnly) return 0;
+
+        let missedDays = 0;
+        const cursor = new Date(clientStartOnly);
+
+        // Iterate from start date to yesterday (not including today)
+        while (cursor < today) {
+          const ds = cursor.toISOString().split('T')[0];
+          // Check if this was an eligible collection day
+          if (!isNonCollectionDay(ds) && !isClientAbsentOnDate(client.id, ds)) {
+            if (!paidDates.has(ds)) {
+              missedDays++;
+            }
+          }
+          cursor.setDate(cursor.getDate() + 1);
+        }
+
+        return missedDays;
+      }
+
       // Update client list
       function updateClientList() {
         const clientList = document.getElementById("clientList");
@@ -5440,6 +5541,15 @@
                     <div style="display: flex; gap: 4px; align-items: center;">
                       ${(() => {
                         let indicators = [];
+
+                        // Add missed payment badge for active clients
+                        if (client.status === 'active') {
+                          const missedDays = calculateMissedPaymentDays(client);
+                          if (missedDays > 0) {
+                            indicators.push(`<span class="status-badge status-red" style="font-size: 8px; padding: 2px 4px; background: var(--ios-red); color: white;">Missed ${missedDays}</span>`);
+                          }
+                        }
+
                         if (client.coMaker && (client.coMaker.name || client.coMaker.contactNumber)) {
                           indicators.push('<span class="status-badge status-office" style="font-size: 8px; padding: 2px 4px;">Co-maker</span>');
                         }
@@ -5858,7 +5968,7 @@
         if (loanAmount % 1000 !== 0) {
           const el = document.getElementById("editLoanAmount");
           if (el) el.classList.add("input-error");
-          showNotification("Loan amount must be a multiple of ₱1,000 (e.g., 1000, 2000, ...)", "error");
+          showNotification("Loan amount must be a multiple of ����1,000 (e.g., 1000, 2000, ...)", "error");
           setTimeout(()=>{ if (el) el.classList.remove("input-error"); }, 2000);
           return;
         }
@@ -8003,7 +8113,7 @@
         const date = document.getElementById('abonoPaymentDate')?.value || todayLocalDateStr();
         if (!lenderId) { info.textContent = 'Available advance: ₱0.00'; return; }
         const avail = computeAvailableAdvance(lenderId, date);
-        info.textContent = `Available advance: ₱${avail.toFixed(2)}`;
+        info.textContent = `Available advance: ��${avail.toFixed(2)}`;
       }
 
       // Settings functions
@@ -8067,6 +8177,11 @@
           }
         }
         renderHolidays();
+
+        // Initialize volume slider visual
+        setTimeout(() => {
+          updateVolumeSliderVisual();
+        }, 50);
       }
 
       // Loan release day toggles
@@ -9237,12 +9352,25 @@
         );
       }
 
+      function updateVolumeSliderVisual() {
+        const volumeSlider = document.getElementById('notificationVolume');
+        if (!volumeSlider) return;
+
+        const raw = parseFloat(volumeSlider.value);
+        const percentage = (raw / 100) * 100;
+        volumeSlider.style.setProperty('--slider-progress', percentage + '%');
+      }
+
       function updateNotificationVolume() {
         if (!notificationSystem) return;
 
-        const raw = parseFloat(document.getElementById('notificationVolume').value);
+        const volumeSlider = document.getElementById('notificationVolume');
+        const raw = parseFloat(volumeSlider.value);
         const volume = Math.max(0, Math.min(1, (raw > 1 ? raw / 100 : raw)));
         notificationSystem.updateSettings({ volume });
+
+        // Update visual progress of the slider
+        updateVolumeSliderVisual();
       }
 
       function updateNotificationSound() {
