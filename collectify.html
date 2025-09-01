@@ -3479,6 +3479,10 @@
                 "
               >
                 <h3>GCash Payment History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="gcashFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('gcash','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="gcashFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('gcash','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button
                   class="btn btn-danger"
                   onclick="confirmClearPaymentHistory('gcash')"
@@ -3800,7 +3804,7 @@
                 </div>
               </div>
               <small style="color: var(--ios-secondary-label); display:block; margin-top:6px;">
-                📢 Automatically checks for overdue payments and plays notification sounds.
+                �� Automatically checks for overdue payments and plays notification sounds.
                 Notifications require user interaction to work (click anywhere first).
               </small>
             </div>
