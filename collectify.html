@@ -10418,9 +10418,9 @@
           const term = defaultSettings.loanTerm;
           let start = formatDateLocal(addDaysLocal(today, -(i * 4)));
 
-          // Apply start date validation to ensure demo clients have valid release days
-          if (!isValidReleaseDay(start)) {
-            start = getNextValidReleaseDay(start);
+          // Apply start date validation to ensure demo clients start the day AFTER a release day (and not a holiday/Sunday)
+          if (!isValidStartDay(start)) {
+            start = getNextValidStartDate(start);
           }
 
           let due = addDaysLocal(start, term);
