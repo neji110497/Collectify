@@ -9344,9 +9344,14 @@
       function updateNotificationVolume() {
         if (!notificationSystem) return;
 
-        const raw = parseFloat(document.getElementById('notificationVolume').value);
+        const volumeSlider = document.getElementById('notificationVolume');
+        const raw = parseFloat(volumeSlider.value);
         const volume = Math.max(0, Math.min(1, (raw > 1 ? raw / 100 : raw)));
         notificationSystem.updateSettings({ volume });
+
+        // Update visual progress of the slider
+        const percentage = (raw / 100) * 100;
+        volumeSlider.style.setProperty('--slider-progress', percentage + '%');
       }
 
       function updateNotificationSound() {
