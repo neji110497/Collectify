@@ -3402,6 +3402,10 @@
                 "
               >
                 <h3>Office Payment History</h3>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="officeFilterToday" class="btn btn-secondary" onclick="setHistoryFilter('office','today')" style="margin:0; padding:6px 10px; font-size:12px;">Today</button>
+                  <button id="officeFilterAll" class="btn btn-secondary" onclick="setHistoryFilter('office','all')" style="margin:0; padding:6px 10px; font-size:12px;">All</button>
+                </div>
                 <button
                   class="btn btn-danger"
                   onclick="confirmClearPaymentHistory('office')"
