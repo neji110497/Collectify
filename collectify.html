@@ -366,7 +366,7 @@
         top: 0;
         left: 0;
         height: 100%;
-        width: min(320px, 85vw);
+        width: min(280px, 75vw);
         background: var(--ios-grouped-background);
         z-index: 1201;
         transform: translateX(-100%);
@@ -8134,7 +8134,7 @@
             if (diff > 0.01) {
               statusBadge =
                 '<span class="status-badge status-overpay">Overpayment</span>';
-              extraLine = `<p>Over by ₱${Math.abs(diff).toFixed(2)}</p>`;
+              extraLine = `<p>Over by ���${Math.abs(diff).toFixed(2)}</p>`;
             } else if (diff < -0.01) {
               statusBadge =
                 '<span class="status-badge status-underpaid">Underpaid</span>';
