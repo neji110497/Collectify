@@ -3995,6 +3995,11 @@
             </div>
           </div>
 
+          <div class="form-group">
+            <label>Business:</label>
+            <input type="text" id="business" placeholder="e.g., Sari-sari store, Tricycle driver" />
+          </div>
+
           <!-- Co-maker Section -->
           <div class="form-group" style="border-top: 1px solid var(--ios-opaque-separator); padding-top: 20px; margin-top: 20px;">
             <h4 style="color: var(--ios-blue); margin-bottom: 15px;">Co-maker Information</h4>
@@ -4147,6 +4152,10 @@
               <label>Address:</label>
               <textarea id="editAddress"></textarea>
             </div>
+          </div>
+          <div class="form-group">
+            <label>Business:</label>
+            <input type="text" id="editBusiness" />
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -5794,6 +5803,7 @@
           .getElementById("contactNumber")
           .value.trim();
         const address = document.getElementById("address").value.trim();
+        const business = document.getElementById("business").value.trim();
 
         // Co-maker information
         const coMakerName = document.getElementById("coMakerName").value.trim();
@@ -5877,6 +5887,7 @@
           name: name,
           contactNumber: contactNumber,
           address: address,
+          business: business,
           loanAmount: loanAmount,
           totalAmount: totalAmount,
           dailyAmount: dailyAmount,
@@ -6422,6 +6433,7 @@
         document.getElementById("editContactNumber").value =
           client.contactNumber || "";
         document.getElementById("editAddress").value = client.address || "";
+        document.getElementById("editBusiness").value = client.business || "";
         document.getElementById("editLoanAmount").value = client.loanAmount;
         document.getElementById("editInterestRate").value = client.interestRate;
         document.getElementById("editRemainingBalance").value =
@@ -6489,6 +6501,7 @@
           .getElementById("editContactNumber")
           .value.trim();
         const address = document.getElementById("editAddress").value.trim();
+        const business = document.getElementById("editBusiness").value.trim();
         const loanAmount = parseFloat(
           document.getElementById("editLoanAmount").value,
         );
@@ -6570,6 +6583,7 @@
         client.name = name;
         client.contactNumber = contactNumber;
         client.address = address;
+        client.business = business;
         client.loanAmount = loanAmount;
         client.interestRate = interestRate;
         client.remainingBalance = remainingBalance;
@@ -7415,7 +7429,7 @@
         // Totals and counts
         const sumAmt = (arr) => arr.reduce((s, x) => s + (Number(x.amount)||0), 0);
         document.getElementById('summaryNotebookTotal').textContent = `₱${sumAmt(nb).toFixed(2)}`;
-        document.getElementById('summaryGcashTotal').textContent = `₱${sumAmt(gc).toFixed(2)}`;
+        document.getElementById('summaryGcashTotal').textContent = `��${sumAmt(gc).toFixed(2)}`;
         const fpEl = document.getElementById('summaryFullPaidTotal'); if (fpEl) fpEl.textContent = `₱${sumAmt(full).toFixed(2)}`;
         document.getElementById('summaryAdvTotal').textContent = `₱${sumAmt(ad).toFixed(2)}`;
         document.getElementById('summaryOverpayCount').textContent = String(over.length);
